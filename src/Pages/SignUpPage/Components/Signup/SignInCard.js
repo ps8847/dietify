@@ -116,7 +116,7 @@ export default function SignInCard({ModeToggler}) {
       >
         Sign in
       </Typography>
-      {ModeToggler}
+      {/* {ModeToggler} */}
 
       </Box>
       <Box
