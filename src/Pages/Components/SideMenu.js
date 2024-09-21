@@ -21,13 +21,10 @@ const Drawer = styled(MuiDrawer, {
   flexShrink: 0,
   whiteSpace: 'nowrap',
   boxSizing: 'border-box',
-  // transition: theme.transitions.create('width', {
-  //   easing: theme.transitions.easing.sharp,
-  //   duration: theme.transitions.duration.enteringScreen,
-  // }),
   [`& .${drawerClasses.paper}`]: {
     width: open ? drawerWidth : theme.spacing(9),
-    backgroundColor: 'background.paper',
+    backgroundColor: '#1E88E5', // Medical-themed blue
+    color: '#fff', // White text for contrast
     overflowX: 'hidden',
   },
 }));
@@ -43,7 +40,6 @@ export default function SideMenu() {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      {/* Hide Drawer on mobile view */}
       {!isMobile && (
         <Drawer variant="permanent" open={open}>
           <Stack
@@ -54,9 +50,9 @@ export default function SideMenu() {
               alignItems: 'center',
               borderTop: '1px solid',
               borderColor: 'divider',
+              color: '#fff', // White text
             }}
           >
-            {/* Show avatar and details only when sidebar is open */}
             {open && (
               <>
                 <Avatar
@@ -66,37 +62,34 @@ export default function SideMenu() {
                   sx={{ width: 36, height: 36 }}
                 />
                 <Box sx={{ mr: 'auto', width: '100%' }}>
-                  <Typography
-                    variant="body2"
-                    sx={{ fontWeight: 500, lineHeight: '16px' }}
-                  >
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     Riley Carter
                   </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{ color: 'text.secondary' }}
-                  >
+                  <Typography variant="caption" sx={{ color: '#fff' }}>
                     riley@email.com
                   </Typography>
                 </Box>
               </>
             )}
-            {/* Collapse/Expand button */}
-            <IconButton onClick={toggleDrawer}>
+            {/* Collapse/Expand Button */}
+            <IconButton onClick={toggleDrawer} sx={{ color: '#fff' }}>
               {open ? <ChevronLeftIcon /> : <MenuOpenIcon />}
             </IconButton>
           </Stack>
           <MenuContent open={open} />
-          <Divider />
+          <Divider sx={{ borderColor: '#fff' }} />
           <Stack sx={{ p: 2 }}>
             <Button
               variant="outlined"
               fullWidth={open}
               startIcon={<LogoutRoundedIcon />}
-              // sx={{
-              //   justifyContent: open ? 'flex-start' : 'center',
-              //   paddingLeft: open ? 2 : 0,
-              // }}
+              sx={{
+                color: '#fff',
+                borderColor: '#fff',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                },
+              }}
             >
               {open && 'Logout'}
             </Button>

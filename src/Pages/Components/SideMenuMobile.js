@@ -7,11 +7,9 @@ import Drawer, { drawerClasses } from '@mui/material/Drawer';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
-import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import ColorModeIconDropdown from '../../Theme/shared-theme/ColorModeIconDropdown';
 import MenuButton from './MenuButton';
 import MenuContent from './MenuContent';
-import CardAlert from './CardAlert';
 
 function SideMenuMobile({ open, toggleDrawer }) {
   return (
@@ -22,16 +20,13 @@ function SideMenuMobile({ open, toggleDrawer }) {
       sx={{
         [`& .${drawerClasses.paper}`]: {
           backgroundImage: 'none',
-          backgroundColor: 'background.paper',
+          backgroundColor: '#1E88E5', // Medical blue background
+          color: '#fff', // White text color for contrast
         },
       }}
     >
-      <Stack
-        sx={{
-          maxWidth: '70dvw',
-          height: '100%',
-        }}
-      >
+      <Stack sx={{ maxWidth: '70dvw', height: '100%' }}>
+        {/* Header */}
         <Stack direction="row" sx={{ p: 2, pb: 0, gap: 1 }}>
           <Stack
             direction="row"
@@ -41,9 +36,9 @@ function SideMenuMobile({ open, toggleDrawer }) {
               sizes="small"
               alt="Riley Carter"
               src="/static/images/avatar/7.jpg"
-              sx={{ width: 24, height: 24 }}
+              sx={{ width: 36, height: 36 }}
             />
-            <Typography component="p" variant="h6">
+            <Typography component="p" variant="h6" sx={{ color: '#fff' }}>
               Riley Carter
             </Typography>
           </Stack>
@@ -51,14 +46,26 @@ function SideMenuMobile({ open, toggleDrawer }) {
             <ColorModeIconDropdown />
           </MenuButton>
         </Stack>
-        <Divider />
+        <Divider sx={{ borderColor: '#fff' }} />
+        {/* Menu Content */}
         <Stack sx={{ flexGrow: 1 }}>
-          <MenuContent open={true}/>
-          <Divider />
+          <MenuContent open={true} />
+          <Divider sx={{ borderColor: '#fff' }} />
         </Stack>
-    
+        {/* Logout Button */}
         <Stack sx={{ p: 2 }}>
-          <Button variant="outlined" fullWidth startIcon={<LogoutRoundedIcon />}>
+          <Button
+            variant="outlined"
+            fullWidth
+            startIcon={<LogoutRoundedIcon />}
+            sx={{
+              color: '#fff',
+              borderColor: '#fff',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              },
+            }}
+          >
             Logout
           </Button>
         </Stack>
