@@ -17,12 +17,12 @@ const drawerWidth = 240;
 const Drawer = styled(MuiDrawer, {
   shouldForwardProp: (prop) => prop !== 'open',
 })(({ theme, open }) => ({
-  width: open ? drawerWidth : theme.spacing(9),
+  width: open ? drawerWidth : theme.spacing(10),
   flexShrink: 0,
   whiteSpace: 'nowrap',
   boxSizing: 'border-box',
   [`& .${drawerClasses.paper}`]: {
-    width: open ? drawerWidth : theme.spacing(9),
+    width: open ? drawerWidth : theme.spacing(10),
     backgroundColor: '#1E88E5', // Medical-themed blue
     color: '#fff', // White text for contrast
     overflowX: 'hidden',
@@ -72,13 +72,21 @@ export default function SideMenu() {
               </>
             )}
             {/* Collapse/Expand Button */}
-            <IconButton onClick={toggleDrawer} sx={{ color: '#fff' }}>
+            <IconButton
+              onClick={toggleDrawer}
+              sx={{
+                color: '#fff', // White color for the icon
+                '&:hover': {
+                  backgroundColor: 'inherit', // Keep the background the same as before hover
+                },
+              }}
+            >
               {open ? <ChevronLeftIcon /> : <MenuOpenIcon />}
             </IconButton>
           </Stack>
           <MenuContent open={open} />
           <Divider sx={{ borderColor: '#fff' }} />
-          <Stack sx={{ p: 2 }}>
+          <Stack sx={{ p: 1 }}>
             <Button
               variant="outlined"
               fullWidth={open}

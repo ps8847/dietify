@@ -1,11 +1,10 @@
 import React from 'react'
-import Dashboard from '../Components/Dashboard'
 import MainGrid from './Components/MainGrid'
 
-function DietMaster() {
+function PatientDietPage() {
   return (
     <MainGrid />
   )
 }
 
-export default DietMaster
+export default PatientDietPage

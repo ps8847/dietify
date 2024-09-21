@@ -6,8 +6,13 @@ import PageNotFound from "../Pages/ErrorPage/PageNotFound/Page-Not-Found";
 import PatientPage from "../Pages/PatientsPage/Patient-Page";
 import DietMaster from "../Pages/DietsPage/Diet-Master";
 import Layout from "../Pages/Components/Layout";
+import PatientDietPage from "../Pages/PatientDietPage/Patient-Diet-Page";
+import PaymentsPage from "../Pages/PaymentsPage/Payments-Page";
+
+
 
 const router = createBrowserRouter([
+  
   {
     path: "/",
     exact: true,
@@ -35,6 +40,26 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <DietMaster />,
+      },
+    ],
+  },
+  {
+    path: "patient-diet",
+    element: <Layout AppnavHeading="Patient Diet" HeaderHeading="Patient Diet" />,  // Wrap Diet Master in Layout
+    children: [
+      {
+        index: true,
+        element: <PatientDietPage />,
+      },
+    ],
+  },
+  {
+    path: "payments",
+    element: <Layout AppnavHeading="Payments" HeaderHeading="Payments" />,  // Wrap Diet Master in Layout
+    children: [
+      {
+        index: true,
+        element: <PaymentsPage />,
       },
     ],
   },

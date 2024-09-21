@@ -27,10 +27,10 @@ function SideMenuMobile({ open, toggleDrawer }) {
     >
       <Stack sx={{ maxWidth: '70dvw', height: '100%' }}>
         {/* Header */}
-        <Stack direction="row" sx={{ p: 2, pb: 0, gap: 1 }}>
+        <Stack direction="row" sx={{ p: 2, pb: 0, gap: 1 , alignItems:'center'}}>
           <Stack
             direction="row"
-            sx={{ gap: 1, alignItems: 'center', flexGrow: 1, p: 1 }}
+            sx={{ gap: 1, alignItems: 'center' , justifyContent:'center', flexGrow: 1, p: 1 }}
           >
             <Avatar
               sizes="small"
@@ -42,9 +42,9 @@ function SideMenuMobile({ open, toggleDrawer }) {
               Riley Carter
             </Typography>
           </Stack>
-          <MenuButton>
+          {/* <MenuButton>
             <ColorModeIconDropdown />
-          </MenuButton>
+          </MenuButton> */}
         </Stack>
         <Divider sx={{ borderColor: '#fff' }} />
         {/* Menu Content */}

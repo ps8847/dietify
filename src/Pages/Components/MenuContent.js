@@ -8,6 +8,8 @@ import PeopleRoundedIcon from '@mui/icons-material/PeopleRounded';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import { styled } from '@mui/material/styles';
 import { useNavigate, useLocation } from 'react-router-dom'; // Import useNavigate and useLocation
+import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
+import SavingsIcon from '@mui/icons-material/Savings';
 
 // Define icon size adjustments based on open state
 const IconWrapper = styled('div')(({ open }) => ({
@@ -23,6 +25,8 @@ const IconWrapper = styled('div')(({ open }) => ({
 const mainListItems = [
   { text: 'Patients', icon: <PeopleRoundedIcon />, route: '/patients' },
   { text: 'Diet Master', icon: <AssignmentIcon />, route: '/diet-master' },
+  { text: 'Patient Diet', icon: <MonitorHeartIcon />, route: '/patient-diet' },
+  { text: 'Payments', icon: <SavingsIcon />, route: '/payments' },
 ];
 
 export default function MenuContent({ open }) {
@@ -46,6 +50,9 @@ export default function MenuContent({ open }) {
                 padding: open ? '8px 16px' : '8px 8px',  // Adjust padding based on open state
                 justifyContent: open ? 'flex-start' : 'center',
                 marginBottom: '12px',  // Add margin between list items
+                '& .MuiSvgIcon-root': {
+                  color: 'white', // Keep icon color consistent, avoid dulling
+                },
               }} 
               onClick={() => handleNavigation(item.route)} // Add click handler for navigation
             >
