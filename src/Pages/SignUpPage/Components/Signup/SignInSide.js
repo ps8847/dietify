@@ -9,7 +9,6 @@ import TemplateFrame from './TemplateFrame';
 import { AppBar, Box, styled, Toolbar } from '@mui/material';
 import ToggleColorMode from './ToggleColorMode';
 
-
 export default function SignInSide() {
   const [mode, setMode] = React.useState('light');
   const [showCustomTheme, setShowCustomTheme] = React.useState(true);

@@ -8,7 +8,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
-
+import ColorModeIconDropdown from '../../Theme/shared-theme/ColorModeIconDropdown';
 import MenuButton from './MenuButton';
 import MenuContent from './MenuContent';
 import CardAlert from './CardAlert';
@@ -47,8 +47,8 @@ function SideMenuMobile({ open, toggleDrawer }) {
               Riley Carter
             </Typography>
           </Stack>
-          <MenuButton showBadge>
-            <NotificationsRoundedIcon />
+          <MenuButton>
+            <ColorModeIconDropdown />
           </MenuButton>
         </Stack>
         <Divider />

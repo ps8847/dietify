@@ -4,7 +4,8 @@ import HomePage from "../Pages/HomePage/Home-Page";
 import SignUp from "../Pages/SignUpPage/Sign-Up";
 import PageNotFound from "../Pages/ErrorPage/PageNotFound/Page-Not-Found";
 import PatientPage from "../Pages/PatientsPage/Patient-Page";
-import PatientFormPage from "../Pages/PatientsPage/Patient-Form";
+import DietMaster from "../Pages/DietsPage/Diet-Master";
+import Layout from "../Pages/Components/Layout";
 
 const router = createBrowserRouter([
   {
@@ -15,18 +16,33 @@ const router = createBrowserRouter([
   {
     path: "auth/SignUp",
     exact: true,
-    element: <SignUp/>,
+    element: <SignUp />,
   },
   {
     path: "patients",
-    exact: true,
-    element: <PatientPage/>,
+    element: <Layout AppnavHeading="Patients" HeaderHeading="Patients" />,  // Wrap Patients in Layout
+    children: [
+      {
+        index: true,
+        element: <PatientPage />,
+      },
+    ],
+  },
+  {
+    path: "diet-master",
+    element: <Layout AppnavHeading="Diet Master" HeaderHeading="Diet Master" />,  // Wrap Diet Master in Layout
+    children: [
+      {
+        index: true,
+        element: <DietMaster />,
+      },
+    ],
   },
   {
     path: "*",
     exact: true,
-    element: <PageNotFound/>,
-  }
+    element: <PageNotFound />,
+  },
 ]);
 
 export default router;

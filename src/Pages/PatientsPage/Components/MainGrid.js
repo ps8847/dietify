@@ -93,7 +93,7 @@ export default function MainGrid() {
     <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" } }}>
       {/* Add Patient Button */}
       
-      {
+      {/* {
         addPatients == false && 
       <Button
         variant="contained"
@@ -103,7 +103,7 @@ export default function MainGrid() {
       >
         Add Patient ( Popup)
       </Button>
-      }
+      } */}
 
       <Button
         variant="contained"
@@ -111,7 +111,7 @@ export default function MainGrid() {
         sx={{ mb: 2 }}
         onClick={() => setaddPatients(!addPatients)}
       >
-        {addPatients == false ? "Add Patient (Page)" : "View All Patients" }
+        {addPatients == false ? "Add Patient" : "View All Patients" }
       </Button>
 
       {/* Patient Form Modal */}

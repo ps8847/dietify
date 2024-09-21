@@ -172,7 +172,7 @@ export default function PatientFormPage() {
           sx={{ mt: 3 }}
         >
           <Button type="submit" variant="contained" color="primary">
-            Add Traveller
+            Add Patient
           </Button>
         </Stack>
       </form>
