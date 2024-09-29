@@ -36,7 +36,7 @@ function TemplateFrame({
   children,
 }) {
 
-  const signInSideTheme = createTheme(getSignInSideTheme(mode));
+  const signInSideTheme = createTheme(getSignInSideTheme('light'));
 
   return (
     <ThemeProvider theme={signInSideTheme}>

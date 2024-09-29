@@ -2,16 +2,16 @@ import * as React from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Stack from '@mui/material/Stack';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import getSignInSideTheme from './theme/getSignInSideTheme';
 import SignInCard from './SignInCard';
 import Content from './Content';
 import { Box } from '@mui/material';
+import getCustomTheme from '../../../../Theme/CustomTheme';
 
 export default function SignInSide() {
   const [showCustomTheme, setShowCustomTheme] = React.useState(true);
   
   const defaultTheme = createTheme({ palette: { mode: 'light' } });
-  const SignInSideTheme = createTheme(getSignInSideTheme('light'));
+  const SignInSideTheme = createTheme(getCustomTheme('light'));
 
   return (
     <Box

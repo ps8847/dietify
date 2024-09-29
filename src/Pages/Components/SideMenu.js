@@ -11,6 +11,8 @@ import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import { Button, IconButton, useMediaQuery, useTheme } from '@mui/material';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 const drawerWidth = 240;
 
@@ -34,10 +36,22 @@ export default function SideMenu() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // Detect mobile view
 
+  let navigate = useNavigate();
+  let adminData = useSelector((state) => state.admin.adminData)
+
   const toggleDrawer = () => {
     setOpen(!open);
   };
 
+  const handleLogout = () => {
+    // Clear token from localStorage
+    localStorage.removeItem('auth_token');
+  
+    // Redirect to login page
+    navigate("/auth/SignUp");
+  };
+
+  
   return (
     <Box sx={{ display: 'flex' }}>
       {!isMobile && (
@@ -57,16 +71,16 @@ export default function SideMenu() {
               <>
                 <Avatar
                   sizes="small"
-                  alt="Riley Carter"
+                  alt={adminData?.name}
                   src="/static/images/avatar/7.jpg"
                   sx={{ width: 36, height: 36 }}
                 />
                 <Box sx={{ mr: 'auto', width: '100%' }}>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    Riley Carter
+                    {adminData?.name}
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#fff' }}>
-                    riley@email.com
+                    {adminData?.email}
                   </Typography>
                 </Box>
               </>
@@ -88,6 +102,7 @@ export default function SideMenu() {
           <Divider sx={{ borderColor: '#fff' }} />
           <Stack sx={{ p: 1 }}>
             <Button
+            onClick={() => handleLogout()}
               variant="outlined"
               fullWidth={open}
               startIcon={<LogoutRoundedIcon />}

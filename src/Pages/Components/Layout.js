@@ -1,31 +1,57 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom'; // Import Outlet for nested routes
+import React, { useEffect } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom'; // Import Outlet for nested routes
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import SideMenu from './SideMenu'; // Common Sidebar
 import AppNavbar from './AppNavbar'; // Common Navbar
 import Header from './Header'; // Common Header
-import AppTheme from "../../Theme/shared-theme/AppTheme";
-import {
-  chartsCustomizations,
-  dataGridCustomizations,
-  treeViewCustomizations,
-} from './DashboardComponents/theme/customizations';
-
-const xThemeComponents = {
-  ...chartsCustomizations,
-  ...dataGridCustomizations,
-  ...treeViewCustomizations,
-};
+import { createTheme, ThemeProvider } from '@mui/material';
+import getCustomTheme from '../../Theme/CustomTheme';
+import { useDispatch } from 'react-redux';
+import axios from 'axios';
+import { setadminData } from '../../Redux/Slices/Admin_Slice';
 
 export default function Layout({ AppnavHeading, HeaderHeading }) {
+
+  // const defaultTheme = createTheme({ palette: { mode: 'dark' } });
+  const customTheme = createTheme(getCustomTheme('light'));
+
+
+  const navigate = useNavigate();
+  let dispatch = useDispatch();
+
+  useEffect(() => {
+    // Get token from localStorage
+    const token = localStorage.getItem('auth_token');
+
+    // If token exists, verify it by making an API call
+    if (token) {
+      axios.post('http://127.0.0.1:8000/api/admin/verify-token', { token })
+        .then(response => {
+          // If token is valid, navigate to the /patients page
+          if (response.status === 200) {
+            dispatch(setadminData(response.data.user))
+            // navigate('/patients');
+          }
+        })
+        .catch(error => {
+          // Handle error, such as token being invalid
+          navigate("/auth/SignUp");
+        });
+      } else {
+      navigate("/auth/SignUp");
+
+    }
+  }, [navigate]);
+
+
   return (
-    <AppTheme themeComponents={xThemeComponents}>
+    <ThemeProvider theme={customTheme}>
       <CssBaseline enableColorScheme />
       <Box sx={{ display: 'flex' }}>
-        <SideMenu />  {/* Sidebar remains common */}
-        <AppNavbar AppnavHeading={AppnavHeading} />  {/* Navbar remains common */}
+        <SideMenu />
+        <AppNavbar AppnavHeading={AppnavHeading} /> 
         <Box
           component="main"
           sx={(theme) => ({
@@ -45,11 +71,12 @@ export default function Layout({ AppnavHeading, HeaderHeading }) {
               mt: { xs: 8, md: 0 },
             }}
           >
-            <Header HeaderHeading={HeaderHeading} />  {/* Header for the current page */}
-            <Outlet />  {/* Renders the nested components */}
+            <Header HeaderHeading={HeaderHeading} /> 
+            <Outlet /> 
           </Stack>
         </Box>
       </Box>
-    </AppTheme>
+    
+    </ThemeProvider>
   );
 }

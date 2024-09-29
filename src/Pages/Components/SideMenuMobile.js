@@ -7,11 +7,25 @@ import Drawer, { drawerClasses } from '@mui/material/Drawer';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
-import ColorModeIconDropdown from '../../Theme/shared-theme/ColorModeIconDropdown';
-import MenuButton from './MenuButton';
 import MenuContent from './MenuContent';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 function SideMenuMobile({ open, toggleDrawer }) {
+
+  let navigate = useNavigate()
+
+  let adminData = useSelector((state) => state.admin.adminData)
+  
+  const handleLogout = () => {
+    // Clear token from localStorage
+    localStorage.removeItem('auth_token');
+  
+    // Redirect to login page
+    navigate("/auth/SignUp");
+  };
+
+
   return (
     <Drawer
       anchor="right"
@@ -34,12 +48,12 @@ function SideMenuMobile({ open, toggleDrawer }) {
           >
             <Avatar
               sizes="small"
-              alt="Riley Carter"
+              alt={adminData?.name}
               src="/static/images/avatar/7.jpg"
               sx={{ width: 36, height: 36 }}
             />
             <Typography component="p" variant="h6" sx={{ color: '#fff' }}>
-              Riley Carter
+              {adminData?.name}
             </Typography>
           </Stack>
           {/* <MenuButton>
@@ -55,6 +69,7 @@ function SideMenuMobile({ open, toggleDrawer }) {
         {/* Logout Button */}
         <Stack sx={{ p: 2 }}>
           <Button
+              onClick={() => handleLogout()}
             variant="outlined"
             fullWidth
             startIcon={<LogoutRoundedIcon />}

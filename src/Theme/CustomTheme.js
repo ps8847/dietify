@@ -1,21 +1,27 @@
-import { getDesignTokens } from './themePrimitives';
+import { getDesignTokens } from "./themePrimitives";
 import {
   inputsCustomizations,
   dataDisplayCustomizations,
   feedbackCustomizations,
   navigationCustomizations,
   surfacesCustomizations,
-} from './customizations';
+  chartsCustomizations,
+  dataGridCustomizations,
+  treeViewCustomizations,
+} from "./Customizations";
 
-export default function getSignInSideTheme(mode) {
+export default function getCustomTheme(mode) {
   return {
-    ...getDesignTokens(mode),
+    ...getDesignTokens("light"),
     components: {
       ...inputsCustomizations,
       ...dataDisplayCustomizations,
       ...feedbackCustomizations,
       ...navigationCustomizations,
       ...surfacesCustomizations,
+      ...chartsCustomizations,
+      ...dataGridCustomizations,
+      ...treeViewCustomizations,
     },
   };
 }

@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, useNavigate } from "react-router-dom";
 
 import HomePage from "../Pages/HomePage/Home-Page";
 import SignUp from "../Pages/SignUpPage/Sign-Up";
@@ -9,22 +9,15 @@ import Layout from "../Pages/Components/Layout";
 import PatientDietPage from "../Pages/PatientDietPage/Patient-Diet-Page";
 import PaymentsPage from "../Pages/PaymentsPage/Payments-Page";
 
-
-
 const router = createBrowserRouter([
   
-  {
-    path: "/",
-    exact: true,
-    element: <HomePage />,
-  },
   {
     path: "auth/SignUp",
     exact: true,
     element: <SignUp />,
   },
   {
-    path: "patients",
+    path: "/",
     element: <Layout AppnavHeading="Patients" HeaderHeading="Patients" />,  // Wrap Patients in Layout
     children: [
       {

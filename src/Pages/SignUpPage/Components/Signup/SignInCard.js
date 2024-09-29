@@ -18,6 +18,7 @@ import { GoogleIcon, FacebookIcon, SitemarkIcon } from "./CustomIcons";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { IconButton, InputAdornment } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -43,6 +44,7 @@ export default function SignInCard({ModeToggler}) {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [open, setOpen] = React.useState(false);
+  const [loading, setLoading] = React.useState(false); // To manage loading state
 
   const [showPassword, setShowPassword] = React.useState(false);
 
@@ -64,44 +66,79 @@ export default function SignInCard({ModeToggler}) {
     setOpen(false);
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get("email"),
-      password: data.get("password"),
-    });
-  };
-
   let navigate = useNavigate();
 
   const validateInputs = () => {
-    const email = document.getElementById("email");
-    const password = document.getElementById("password");
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
     let isValid = true;
 
-    // if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
-    //   setEmailError(true);
-    //   setEmailErrorMessage("Please enter a valid email address.");
-    //   isValid = false;
-    // } else {
-    //   setEmailError(false);
-    //   setEmailErrorMessage("");
-    // }
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      setEmailError(true);
+      setEmailErrorMessage("Please enter a valid email address.");
+      isValid = false;
+    } else {
+      setEmailError(false);
+      setEmailErrorMessage("");
+    }
 
-    // if (!password.value || password.value.length < 6) {
-    //   setPasswordError(true);
-    //   setPasswordErrorMessage("Password must be at least 6 characters long.");
-    //   isValid = false;
-    // } else {
-    //   setPasswordError(false);
-    //   setPasswordErrorMessage("");
-    // }
+    if (!password || password.length < 6) {
+      setPasswordError(true);
+      setPasswordErrorMessage("Password must be at least 6 characters long.");
+      isValid = false;
+    } else {
+      setPasswordError(false);
+      setPasswordErrorMessage("");
+    }
 
-    navigate("/patients")
     return isValid;
   };
+
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+  
+    // Validate inputs before making API call
+    if (!validateInputs()) {
+      return;
+    }
+  
+    const data = new FormData(event.currentTarget);
+    const email = data.get("email");
+    const password = data.get("password");
+  
+    setLoading(true); // Set loading to true while API call is in progress
+  
+    try {
+      // API call to sign in
+      const response = await axios.post("http://127.0.0.1:8000/api/admin/login", {
+        email,
+        password,
+      });
+  
+      // If login is successful, store token in localStorage and navigate
+      if (response.status === 200) {
+        console.log("Login successful", response.data);
+  
+        // Store token in localStorage (or sessionStorage)
+        localStorage.setItem('auth_token', response.data.auth_token);
+  
+        // Redirect the user
+        navigate("/");
+      }
+    } catch (error) {
+      // Handle API error response
+      console.error("Login failed", error.response.data);
+      setEmailError(true);
+      setEmailErrorMessage("Invalid email or password.");
+    } finally {
+      setLoading(false); // Set loading to false after the API call is done
+    }
+  };
+  
+
+
 
   return (
     <Card variant="outlined">
@@ -190,13 +227,8 @@ export default function SignInCard({ModeToggler}) {
           label="Remember me"
         />
         <ForgotPassword open={open} handleClose={handleClose} />
-        <Button
-          type="submit"
-          fullWidth
-          variant="contained"
-          onClick={validateInputs}
-        >
-          Sign in
+        <Button type="submit" fullWidth variant="contained" disabled={loading}>
+          {loading ? "Signing in..." : "Sign in"}
         </Button>
 
         <Box
