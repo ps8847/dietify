@@ -24,6 +24,17 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const [loading, setLoading] = useState(false);
+  const [selectedDay, setSelectedDay] = useState("Sunday");
+  const [mainDietPlans, setmainDietPlans] = useState({
+    Sunday: {},
+    Monday: {},
+    Tuesday: {},
+    Wednesday: {},
+    Thursday: {},
+    Friday: {},
+    Saturday: {},
+  });
+  const [currentSelections, setCurrentSelections] = useState({});
 
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
@@ -35,8 +46,8 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
       .then((response) => {
         setFetchedPatientData(response.data);
         if (response.data.hasPlan == true) {
-          setisForAdd(false)
-          setPlanId(response.data.planId)
+          setisForAdd(false);
+          setPlanId(response.data.planId);
         }
       })
       .catch((error) => {
@@ -67,32 +78,18 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
     }
   }, [patientId]);
 
-  const [selectedDay, setSelectedDay] = useState("Sunday");
-
-  const [mainDietPlans, setmainDietPlans] = useState({
-    Sunday: {},
-    Monday: {},
-    Tuesday: {},
-    Wednesday: {},
-    Thursday: {},
-    Friday: {},
-    Saturday: {},
-  });
-
-  console.log("mainDietPlans is : " , mainDietPlans);
-  
-
   let fetchPatientDietData = async () => {
     await axios
       .get(`https://doctorbackend.mhtm.ca/api/patientdietplans/${planId}`)
       .then((response) => {
-        console.log("the response here is : ", response);
-
         setmainDietPlans((prev) => ({
-          ...prev,  // Spread the previous state
-          ...response.data.DietPlan.DietPlan,  // Spread the fetched diet plan data, which should overwrite the relevant days
+          ...prev,
+          ...response.data.DietPlan.DietPlan,
         }));
-
+        setCurrentSelections((prev) => ({
+          ...prev,
+          ...response.data.DietPlan.DietPlan,
+        }));
       })
       .catch((error) => {
         setSnackbarMessage("Error fetching Diet Plan data.");
@@ -103,21 +100,17 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
 
   useEffect(() => {
     if (isForAdd == false) {
-      fetchPatientDietData()
+      fetchPatientDietData();
     }
-  }, [isForAdd])
-
+  }, [isForAdd]);
 
   const handlePlanChange = (category, labels) => {
-    // Capitalize the first letter of each word and remove duplicates (case-insensitive)
-    const capitalizeFirstLetter = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-  
+    
     const uniqueLabels = Array.from(
-      new Set(labels.map(label => label.toLowerCase()))
-    ).map(capitalizeFirstLetter);
-  
-    // Update the mainDietPlans state
-    setmainDietPlans((prev) => ({
+      new Set(labels)
+    )
+
+    setCurrentSelections((prev) => ({
       ...prev,
       [selectedDay]: {
         ...prev[selectedDay],
@@ -125,82 +118,63 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
       },
     }));
   };
-  
-  
 
   const handleSave = () => {
-
-    console.log("Final Diet Plan:", mainDietPlans);
-    console.log("planId is : ", planId);
-
-    // Check if all days are empty
-    const allDaysEmpty = Object.values(mainDietPlans).every(dayPlan => {
-      // Check if the dayPlan is empty or all categories inside it are empty arrays
-      return Object.values(dayPlan).every(categoryValues => categoryValues.length === 0);
-    });
+    const allDaysEmpty = Object.values(currentSelections).every(dayPlan =>
+      Object.values(dayPlan).every(categoryValues => categoryValues.length === 0)
+    );
 
     if (allDaysEmpty) {
       setSnackbarMessage("Select at least one Diet Rule for the Patient");
       setSnackbarSeverity("error");
-      setOpenSnackbar(true); // Show Snackbar on error
+      setOpenSnackbar(true);
       setLoading(false);
       return;
     }
 
+    setmainDietPlans(currentSelections);
 
     let mainRequestStruc = {
       patientId,
-      DietPlan: mainDietPlans
-    }
+      DietPlan: currentSelections,
+    };
 
     const method = planId ? "put" : "post";
     const url = planId
       ? `https://doctorbackend.mhtm.ca/api/patientdietplans/${planId}`
-      : `https://doctorbackend.mhtm.ca/api/patientdietplans`
+      : `https://doctorbackend.mhtm.ca/api/patientdietplans`;
 
-    setLoading(true)
+    setLoading(true);
 
     axios[method](url, mainRequestStruc)
       .then((res) => {
-        console.log(res);
-
-        setSnackbarMessage(
-          planId
-            ? "Patient's Diet Plan updated successfully!"
-            : "Patient's Diet Plan added successfully!"
-        );
+        setSnackbarMessage(planId
+          ? "Patient's Diet Plan updated successfully!"
+          : "Patient's Diet Plan added successfully!");
         setSnackbarSeverity("success");
-        setOpenSnackbar(true); // Show Snackbar on success
+        setOpenSnackbar(true);
 
-        // Set a timeout for 2 seconds (2000 ms) before calling setAddPatients(false)
         setTimeout(() => {
           onCloseForm();
-        }, 2000); // 2 seconds delay
-        setLoading(false)
-
+        }, 2000);
+        setLoading(false);
       })
       .catch((error) => {
-        setSnackbarMessage(error?.response?.data?.message ? error?.response.data.message : "Error submitting form. Please try again.");
+        setSnackbarMessage(error?.response?.data?.message || "Error submitting form. Please try again.");
         setSnackbarSeverity("error");
-        setOpenSnackbar(true); // Show Snackbar on error
-        console.error("Error submitting form:", error);
-        setLoading(false)
+        setOpenSnackbar(true);
+        setLoading(false);
       });
-
   };
 
   const handleDaySelect = (day) => {
     setSelectedDay(day);
   };
 
-  console.log("FetchedDietPlan is : " , FetchedDietPlan);
-  
   return (
     <Paper style={{ padding: 20, backgroundColor: '#f5f8fa' }}>
       <Paper style={{ padding: '16px', marginBottom: '20px' }}>
-        <Typography variant="h5" gutterBottom>
-          Patient Information
-        </Typography>
+        <Typography variant="h5" gutterBottom>Patient Information</Typography>
         <Typography>Name: {FetchedPatientData?.name}</Typography>
         <Typography>Age: {FetchedPatientData?.age}</Typography>
         <Typography>Gender: {FetchedPatientData?.gender}</Typography>
@@ -224,9 +198,7 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
                 borderRadius: "4px",
                 cursor: "pointer",
                 backgroundColor: selectedDay === day ? 'lightblue' : 'transparent',
-                '&:hover': {
-                  backgroundColor: '#e0e0e0',
-                },
+                '&:hover': { backgroundColor: '#e0e0e0' },
               }}
             >
               <Typography variant="body2">{day}</Typography>
@@ -235,44 +207,43 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
         </Box>
 
         <Box flexGrow={1}>
-        {FetchedDietPlan?.map((meal) => (
-  <FormControl fullWidth variant="outlined" margin="normal" key={meal.category}>
-    <InputLabel
-      id={`${meal.category}-label`}
-      sx={{
-        background: "#f5f6fa",
-        paddingLeft: "5px",
-        paddingRight: "5px",
-        transform: "translate(14px, 12px) scale(1)",
-        '&.MuiInputLabel-shrink': {
-          transform: "translate(14px, -6px) scale(0.75)",
-        },
-      }}
-    >
-      {meal.category}
-    </InputLabel>
-    <Select
-  labelId={`${meal.category}-label`}
-  multiple
-  value={mainDietPlans[selectedDay][meal.category] || []}
-  onChange={(e) => handlePlanChange(meal.category, e.target.value)}
-  renderValue={(selected) => selected.join(', ')}
->
-  {meal.values.map((plan) => (
-    <MenuItem key={plan} value={plan}>
-      <Checkbox
-        checked={mainDietPlans[selectedDay][meal.category]?.some(
-          (selectedPlan) => selectedPlan.toLowerCase() === plan.toLowerCase()
-        )}
-      />
-      <ListItemText primary={plan} />
-    </MenuItem>
-  ))}
-</Select>
-
-  </FormControl>
-))}
-
+          {FetchedDietPlan?.map((meal) => (
+            <FormControl fullWidth variant="outlined" margin="normal" key={meal.category}>
+              <InputLabel
+                id={`${meal.category}-label`}
+                sx={{
+                  background: "#f5f6fa",
+                  paddingLeft: "5px",
+                  paddingRight: "5px",
+                  transform: "translate(14px, 12px) scale(1)",
+                  '&.MuiInputLabel-shrink': {
+                    transform: "translate(14px, -6px) scale(0.75)",
+                  },
+                }}
+              >
+                {meal.category}
+              </InputLabel>
+              <Select
+                labelId={`${meal.category}-label`}
+                multiple
+                value={currentSelections[selectedDay]?.[meal.category] || []}
+                onChange={(e) => handlePlanChange(meal.category, e.target.value)}
+                renderValue={(selected) => selected.join(', ')}
+              >
+                {Array.from(new Set([
+                  ...(FetchedDietPlan.find(d => d.category === meal.category)?.values || []),
+                  ...(currentSelections[selectedDay]?.[meal.category] || [])
+                ])).map((plan) => (
+                  <MenuItem key={plan} value={plan}>
+                    <Checkbox
+                      checked={currentSelections[selectedDay]?.[meal.category]?.includes(plan)}
+                    />
+                    <ListItemText primary={plan} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          ))}
         </Box>
       </Box>
 
@@ -293,12 +264,8 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
             backgroundColor: snackbarSeverity === "success" ? "#4caf50" : "#f44336",
             color: "#fff",
             fontWeight: 600,
-            "& .MuiAlert-icon": {
-              color: "#fff",
-            },
-            "& .MuiAlert-action svg": {
-              color: "#fff",
-            },
+            "& .MuiAlert-icon": { color: "#fff" },
+            "& .MuiAlert-action svg": { color: "#fff" },
           }}
         >
           {snackbarMessage}
