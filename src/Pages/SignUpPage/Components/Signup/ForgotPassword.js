@@ -105,7 +105,7 @@ function ForgotPassword({ open, handleClose }) {
               margin="dense"
               id="email"
               name="email"
-              label="Email address"
+
               placeholder="Email address"
               type="email"
               fullWidth
@@ -120,10 +120,13 @@ function ForgotPassword({ open, handleClose }) {
             <OutlinedInput
               autoFocus
               required
+              sx={{
+                '& .MuiOutlinedInput-notchedOutline legend': { color: 'black' }, // Apply color to the legend
+              }}
               margin="dense"
               id="otp"
               name="otp"
-              label="OTP"
+          
               placeholder="Enter OTP"
               type="text"
               fullWidth
@@ -136,7 +139,7 @@ function ForgotPassword({ open, handleClose }) {
               margin="dense"
               id="newPassword"
               name="newPassword"
-              label="New Password"
+       
               placeholder="Enter New Password"
               type="password"
               fullWidth
