@@ -1,12 +1,22 @@
 import * as React from "react";
-import { Box, Button, TextField, Typography, Stack, Chip, MenuItem, Select, InputLabel, FormControl ,  Snackbar,
-  Alert } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  Stack,
+  Chip,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
-import { useEffect } from "react";
 
-const ListItemStyled = styled('li')(({ theme }) => ({
+const ListItemStyled = styled("li")(({ theme }) => ({
   margin: theme.spacing(0.5),
 }));
 
@@ -32,51 +42,37 @@ const textFieldStyle = {
   },
 };
 
-const ErrorHeading = ({ errorName }) => {
-  return (
-    <Typography
-      color="hsl(0, 90%, 40%)"
-      sx={{
-        fontSize: "0.75rem",
-        fontWeight: 400,
-        fontFamily: "Roboto",
-        lineHeight: 1.66,
-        textAlign: "left",
-        marginTop: "3px",
-        marginLeft: "14px",
-        marginRight: "14px",
-      }}
-    >
-      {errorName}
-    </Typography>
-  );
+// Utility function to capitalize the first letter of each word
+const capitalizeWords = (str) => {
+  return str
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 };
 
-export default function DietPlanFormPage({ dietPlanId , onCloseForm}) {
-
-  const [dietPlanData, setdietPlanData] = useState({
+export default function DietPlanFormPage({ dietPlanId, onCloseForm }) {
+  const [dietPlanData, setDietPlanData] = useState({
     category: "",
     values: [],
   });
 
-  const [categoryName, setcategoryName] = useState("");
-  const [openSnackbar, setOpenSnackbar] = useState(false); // For Snackbar visibility
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // For Snackbar severity
+  const [categoryName, setCategoryName] = useState("");
+  const [editIndex, setEditIndex] = useState(null); // Track index of editing chip
+  const [editValue, setEditValue] = useState(""); // Track value of editing chip
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-
-  const [loading  ,  setLoading] = useState(false)
-
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
   useEffect(() => {
     if (dietPlanId) {
       axios
-        .get(`http://127.0.0.1:8000/api/dietplans/${dietPlanId}`)
+        .get(`https://doctorbackend.mhtm.ca/api/dietplans/${dietPlanId}`)
         .then((response) => {
-        
-          setdietPlanData(response.data);
+          setDietPlanData(response.data);
         })
-        .catch((error) => {
+        .catch(() => {
           setSnackbarMessage("Error fetching DietPlan data.");
           setSnackbarSeverity("error");
           setOpenSnackbar(true);
@@ -84,129 +80,100 @@ export default function DietPlanFormPage({ dietPlanId , onCloseForm}) {
     }
   }, [dietPlanId]);
 
-  const handleDelete = (chipToDelete, type) => () => {
-    setdietPlanData((prevData) => ({
+  const handleDelete = (chipToDelete) => () => {
+    setDietPlanData((prevData) => ({
       ...prevData,
-      [type]: prevData[type].filter((chip) => chip !== chipToDelete),
+      values: prevData.values.filter((chip) => chip !== chipToDelete),
     }));
   };
 
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
-    setdietPlanData((prevData) => ({
+  const handleChipClick = (index, value) => {
+    setEditIndex(index);
+    setEditValue(value);
+  };
+
+  const handleEditConfirm = () => {
+    const updatedValues = [...dietPlanData.values];
+    // Capitalize the edited value before saving
+    updatedValues[editIndex] = capitalizeWords(editValue);
+    setDietPlanData((prevData) => ({
       ...prevData,
-      [name]: value,
+      values: updatedValues,
     }));
+    setEditIndex(null);
   };
-
-  const validate = () => {
-    const newErrors = {};
-
-    if (!dietPlanData.category) newErrors.category = "Category is required.";
-    if (dietPlanData.values.length == 0) newErrors.values = "Atleast One Diet Should be there";
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // Return true if no errors
-  };
-
-// console.log(errors);
-// console.log(dietPlanData);
-
 
   const handleSubmit = (event) => {
-
-    // alert("here")
     event.preventDefault();
 
     if (!validate()) return;
 
     const method = dietPlanId ? "put" : "post";
     const url = dietPlanId
-      ? `http://127.0.0.1:8000/api/dietplans/${dietPlanId}`
-      : `http://127.0.0.1:8000/api/dietplans`
+      ? `https://doctorbackend.mhtm.ca/api/dietplans/${dietPlanId}`
+      : `https://doctorbackend.mhtm.ca/api/dietplans`;
 
-    setLoading(true)
-    
+    setLoading(true);
+
     axios[method](url, dietPlanData)
-    .then(() => {
+      .then(() => {
         setSnackbarMessage(
           dietPlanId
-          ? "DietPlan updated successfully!"
-          : "DietPlan added successfully!"
+            ? "DietPlan updated successfully!"
+            : "DietPlan added successfully!"
         );
         setSnackbarSeverity("success");
-        setOpenSnackbar(true); // Show Snackbar on success
-        
-        // Set a timeout for 2 seconds (2000 ms) before calling setAddPatients(false)
-       setTimeout(() => {
-        onCloseForm();
-      }, 2000); // 2 seconds delay
-         setLoading(false)
-         
-        })
+        setOpenSnackbar(true);
+        setTimeout(() => {
+          onCloseForm();
+        }, 2000);
+        setLoading(false);
+      })
       .catch((error) => {
-        setSnackbarMessage(error?.response?.data?.message ? error?.response.data.message : "Error submitting form. Please try again.");
+        setSnackbarMessage("Error submitting form.");
         setSnackbarSeverity("error");
-        setOpenSnackbar(true); // Show Snackbar on error
-        console.error("Error submitting form:", error);
-        setLoading(false)
+        setOpenSnackbar(true);
+        setLoading(false);
       });
   };
 
-  const addChip = (type, inputValue) => {
+  const addChip = (inputValue) => {
     if (inputValue) {
-      setdietPlanData((prevData) => ({
+      // Capitalize the input value before adding
+      setDietPlanData((prevData) => ({
         ...prevData,
-        [type]: [...prevData[type], inputValue],
+        values: [...prevData.values, capitalizeWords(inputValue)],
       }));
-      switch (type) {
-        case "categoryName":
-          setcategoryName("");
-          break;
-        default:
-          break;
-      }
+      setCategoryName("");
     }
   };
 
-  const handleCloseSnackbar = () => {
-    setOpenSnackbar(false);
+  const validate = () => {
+    const newErrors = {};
+    if (!dietPlanData.category) newErrors.category = "Category is required.";
+    if (dietPlanData.values.length === 0)
+      newErrors.values = "At least one diet should be there.";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
-
 
   return (
     <Box sx={{ width: "100%", mx: "auto", mt: 1 }}>
       <form onSubmit={handleSubmit}>
-        {
-          dietPlanId == null &&
         <FormControl fullWidth sx={{ marginBottom: 2 }} required>
-          <InputLabel
-            sx={{
-              background: "#f5f6fa",
-              paddingLeft: "5px",
-              paddingRight: "5px",
-              transform: "translate(14px, 12px) scale(1)",
-              '&.MuiInputLabel-shrink': {
-                transform: "translate(14px, -6px) scale(0.75)",
-              },
-            }}
-          >
-            Category
-          </InputLabel>
+          <InputLabel>Category</InputLabel>
           <Select
-          disabled={dietPlanId !== null}
             value={dietPlanData.category}
             required
             label="Category"
-            name="gender"
-            onChange={handleInputChange}
-            sx={{
-              '& .MuiSelect-select': {
-                padding: "12px 14px",
-              },
-            }}
+            name="category"
+            onChange={(e) =>
+              setDietPlanData((prevData) => ({
+                ...prevData,
+                category: e.target.value,
+              }))
+            }
           >
-
             <MenuItem value="earlyMorning">Early Morning</MenuItem>
             <MenuItem value="Breakfast">Breakfast</MenuItem>
             <MenuItem value="midMeal">Mid Meal</MenuItem>
@@ -216,9 +183,6 @@ export default function DietPlanFormPage({ dietPlanId , onCloseForm}) {
             <MenuItem value="allDay">All Day</MenuItem>
           </Select>
         </FormControl>
-        }
-
-        {errors.category && <ErrorHeading errorName={errors.category}/> }
 
         <Stack direction="row" spacing={2} alignItems="center" sx={{ marginBottom: 2 }}>
           <TextField
@@ -226,62 +190,51 @@ export default function DietPlanFormPage({ dietPlanId , onCloseForm}) {
             variant="outlined"
             placeholder="Enter Diet item"
             value={categoryName}
-            onChange={(e) => setcategoryName(e.target.value)}
+            onChange={(e) => setCategoryName(e.target.value)}
             sx={textFieldStyle}
           />
-          <Button variant="contained" color="primary" onClick={() => addChip("categoryName", categoryName)}>
+          <Button variant="contained" color="primary" onClick={() => addChip(categoryName)}>
             Add
           </Button>
         </Stack>
 
         <Box sx={{ display: "flex", flexWrap: "wrap", marginBottom: 2 }}>
-          {dietPlanData.values.map((data) => (
-            <ListItemStyled key={data.key} sx={{ listStyle: "none" }}>
-              <Chip 
-                label={data} 
-                onDelete={handleDelete(data, "values")}
-                sx={{ 
-                  height: '40px', 
-                  fontSize: '1rem', 
-                  padding: '10px 16px' 
-                }} 
+          {dietPlanData.values.map((data, index) =>
+            editIndex === index ? (
+              <TextField
+                key={index}
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onBlur={handleEditConfirm}
+                onKeyPress={(e) => e.key === "Enter" && handleEditConfirm()}
+                autoFocus
               />
-            </ListItemStyled>
-          ))}
+            ) : (
+              <ListItemStyled key={index} sx={{ listStyle: "none" }}>
+                <Chip
+                  label={data}
+                  onClick={() => handleChipClick(index, data)}
+                  onDelete={handleDelete(data)}
+                  sx={{
+                    height: "40px",
+                    fontSize: "1rem",
+                    padding: "10px 16px",
+                  }}
+                />
+              </ListItemStyled>
+            )
+          )}
         </Box>
 
         <Stack direction="row" justifyContent="flex-end" spacing={2}>
-
-        <Button type="submit" variant="contained" color="primary" disabled={loading}>
-          {dietPlanId ? `${loading == true ? "Updating" : "Update"} DietPlan` : `${loading == true ? "Adding" : "Add"} DietPlan`}
-        </Button>
+          <Button type="submit" variant="contained" color="primary" disabled={loading}>
+            {dietPlanId ? (loading ? "Updating..." : "Update DietPlan") : (loading ? "Adding..." : "Add DietPlan")}
+          </Button>
         </Stack>
       </form>
 
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={4000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbarSeverity}
-          sx={{
-            backgroundColor:
-              snackbarSeverity === "success" ? "#4caf50" : "#f44336",
-            color: "#fff",
-            fontWeight: 600,
-            "& .MuiAlert-icon": {
-              color: "#fff", // Set icon color to white
-            },
-            "& .MuiAlert-action svg": {
-              color: "#fff", // Set the close (cross) icon color to white
-            },
-          }}
-        >
-          {snackbarMessage}
-        </Alert>
+      <Snackbar open={openSnackbar} autoHideDuration={4000} onClose={() => setOpenSnackbar(false)}>
+        <Alert severity={snackbarSeverity}>{snackbarMessage}</Alert>
       </Snackbar>
     </Box>
   );

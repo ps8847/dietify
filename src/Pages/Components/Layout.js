@@ -27,7 +27,7 @@ export default function Layout({ AppnavHeading, HeaderHeading }) {
 
     // If token exists, verify it by making an API call
     if (token) {
-      axios.post('http://127.0.0.1:8000/api/admin/verify-token', { token })
+      axios.post('https://doctorbackend.mhtm.ca/api/admin/verify-token', { token })
         .then(response => {
           // If token is valid, navigate to the /patients page
           if (response.status === 200) {

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { styled } from "@mui/material/styles";
-import {   Button,
+import {
+  Button,
   Box,
   Typography,
   CircularProgress,
@@ -11,8 +12,8 @@ import {   Button,
   DialogContent,
   DialogActions,
   Snackbar,
-  Alert
- } from "@mui/material";
+  Alert,
+} from "@mui/material";
 import Grid from "@mui/material/Grid";
 import CustomizedDataGrid from "../../Components/CustomizedDataGrid";
 import { columns, rows } from "./gridData";
@@ -27,7 +28,6 @@ import PatientDietView from "../Patient-Diet-View";
 import axios from "axios";
 
 export default function MainGrid() {
-
   let [addPatientsDiet, setaddPatientsDiet] = React.useState(false);
   let [viewPatientsDiet, setviewPatientsDiet] = React.useState(false);
   const [patients, setPatients] = React.useState([]);
@@ -40,11 +40,11 @@ export default function MainGrid() {
   const [snackbarMessage, setSnackbarMessage] = React.useState("");
   const [snackbarSeverity, setSnackbarSeverity] = React.useState("success"); // For Snackbar severity
 
-   // Fetch patients from API
-   const fetchPatients = async () => {
+  // Fetch patients from API
+  const fetchPatients = async () => {
     try {
       setLoading(true); // Start loading
-      const response = await axios.get("http://127.0.0.1:8000/api/patients");
+      const response = await axios.get("https://doctorbackend.mhtm.ca/api/patients");
       setPatients(response.data.sort((a, b) => b.id - a.id));
     } catch (error) {
       console.error("Error fetching patients:", error);
@@ -59,58 +59,75 @@ export default function MainGrid() {
     fetchPatients();
   }, [addPatientsDiet]);
 
-  let [PatientId , setPatientId] = React.useState(null)
+  let [PatientId, setPatientId] = React.useState(null);
+  let [PlanId, setPlanId] = React.useState(null);
 
+  let [updatePlan  , setUpdatePlan] = React.useState(false)
+  
   const handleEdit = (row) => {
     console.log("Edit row:", row);
-    setPatientId(row.id)
-    setaddPatientsDiet(false)
-
+    setPatientId(row.id);
+    setaddPatientsDiet(true);
+    setUpdatePlan(true)
   };
-  
+
+  const handleView = (row) => {
+    setviewPatientsDiet(true);
+    setPatientId(row.id);
+    setPlanId(row.planId)
+  };
+
   const handleDelete = (row) => {
     setPatientId(row.id);
+    setPlanId(row.planId);
     setOpenDeleteDialog(true); // Open delete confirmation dialog
     console.log("Delete row:", row);
   };
-  
+
   const handleadd = (row) => {
     setPatientId(row.id);
-    setaddPatientsDiet(true)
-  
+    setaddPatientsDiet(true);
   };
 
-  
-const handleCloseSnackbar = () => {
-  setOpenSnackbar(false);
-};
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false);
+  };
 
-const confirmDelete = async () => {
-  setDeleteLoading(true)
-  try {
-    await axios.delete(`http://127.0.0.1:8000/api/patientdietplans/${PatientId}`);
-    setPatients(patients.filter((patient) => patient.id !== PatientId)); // Remove deleted patient from state
-    setSnackbarMessage("Patient's Diet Plan Successfully");
-    setSnackbarSeverity("success");
-    setOpenSnackbar(true);
-  } catch (error) {
-    console.error("Error deleting patient:", error);
-    setError("Failed to delete patient's Diet Plan. Please try again.");
-    setSnackbarMessage(error?.response?.data?.message ? error?.response.data.message : "Error Deleting patient's Diet Plan. Please try again.");
-    setSnackbarSeverity("error");
-    setOpenSnackbar(true); // Show Snackbar on error
-  } finally {
-    setOpenDeleteDialog(false); // Close the dialog
-    setPatientId(null); // Clear patientId
-    setDeleteLoading(false)
-  }
-};
+  const confirmDelete = async () => {
+    setDeleteLoading(true);
+    try {
+      await axios.delete(
+        `https://doctorbackend.mhtm.ca/api/patientdietplans/${PlanId}`
+      );
 
-const onCloseForm = () => {
-  setPatientId(null);
-  setaddPatientsDiet(false);
+      setSnackbarMessage("Patient's Diet Plan Successfully");
+      setSnackbarSeverity("success");
+      setOpenSnackbar(true);
+    } catch (error) {
+      console.error("Error deleting patient:", error);
+      // setError("Failed to delete patient's Diet Plan. Please try again.");
+      setSnackbarMessage(
+        error?.response?.data?.message
+          ? error?.response.data.message
+          : "Error Deleting patient's Diet Plan. Please try again."
+      );
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true); // Show Snackbar on error
+    } finally {
+      setOpenDeleteDialog(false); // Close the dialog
+      setPatientId(null); // Clear patientId
+      setDeleteLoading(false);
+      fetchPatients();
+    }
+  };
 
-};
+  const onCloseForm = () => {
+    setPatientId(null);
+    setaddPatientsDiet(false);
+    setUpdatePlan(false)
+    setviewPatientsDiet(false)
+    setPlanId(null)
+  };
 
   const columns = [
     {
@@ -231,7 +248,8 @@ const onCloseForm = () => {
                 size="small"
                 startIcon={<VisibilityIcon />}
                 onClick={(event) => {
-                  setviewPatientsDiet(true);
+                  event.stopPropagation();
+              handleView(params.row)
                 }}
               >
                 View
@@ -270,7 +288,7 @@ const onCloseForm = () => {
                 startIcon={<AddCircleIcon />}
                 onClick={(event) => {
                   event.stopPropagation();
-                  handleadd(params.row)
+                  handleadd(params.row);
                 }}
               >
                 Add Diet Plan
@@ -296,7 +314,11 @@ const onCloseForm = () => {
       )}
 
       <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-        {addPatientsDiet == true ? (`${PatientId === null ? "Update" : "Add"} Diet Plan of " ${(patients?.filter(item => item.id == PatientId)[0]?.name)?.toUpperCase()} "`) : "Patients Diet List" }
+        {addPatientsDiet == true
+          ? `${updatePlan === true ? "Update" : "Add"} Diet Plan of " ${patients
+              ?.filter((item) => item.id == PatientId)[0]
+              ?.name?.toUpperCase()} "`
+          : "Patients Diet List"}
       </Typography>
 
       {/* Loading State */}
@@ -323,18 +345,23 @@ const onCloseForm = () => {
         </Typography>
       )}
 
-
       {/* Patient Data */}
       {!loading && !error && patients.length > 0 ? (
         <Grid container spacing={2}>
           <Grid item xs={12}>
-          {viewPatientsDiet ? (
-            <PatientDietView patientId={PatientId} onCloseForm={onCloseForm}/>
-          ) : addPatientsDiet ? (
-            <PatientDietForm patientId={PatientId} onCloseForm={onCloseForm}/>
-          ) : (
-            <CustomizedDataGrid rows={patients} columns={columns} />
-          )}
+            {viewPatientsDiet ? (
+              <PatientDietView
+                planId={PlanId}
+                onCloseForm={onCloseForm}
+              />
+            ) : addPatientsDiet ? (
+              <PatientDietForm
+                patientId={PatientId}
+                onCloseForm={onCloseForm}
+              />
+            ) : (
+              <CustomizedDataGrid rows={patients} columns={columns} />
+            )}
           </Grid>
         </Grid>
       ) : !loading && !error && patients.length === 0 ? (
@@ -347,22 +374,37 @@ const onCloseForm = () => {
         </Typography>
       ) : null}
 
-
-        {/* Delete Confirmation Dialog */}
-        <Dialog open={openDeleteDialog} onClose={() => {setOpenDeleteDialog(false); setPatientId(null)}}>
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={openDeleteDialog}
+        onClose={() => {
+          setOpenDeleteDialog(false);
+          setPatientId(null);
+        }}
+      >
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
           <Typography>Are you sure you want to delete this patient?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => {setOpenDeleteDialog(false); setPatientId(null)}} color="primary">
+          <Button
+            onClick={() => {
+              setOpenDeleteDialog(false);
+              setPatientId(null);
+            }}
+            color="primary"
+          >
             Cancel
           </Button>
-          <Button onClick={confirmDelete} disabled={Deleteloading}  variant="contained"
+          <Button
+            onClick={confirmDelete}
+            disabled={Deleteloading}
+            variant="contained"
             color="danger"
             size="small"
-            sx={{background:"hsl(0, 90%, 40%)" , color:'white'}}>
-           {Deleteloading ? "Deleting ..." : "Delete"}
+            sx={{ background: "hsl(0, 90%, 40%)", color: "white" }}
+          >
+            {Deleteloading ? "Deleting ..." : "Delete"}
           </Button>
         </DialogActions>
       </Dialog>

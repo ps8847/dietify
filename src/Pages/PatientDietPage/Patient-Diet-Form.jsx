@@ -16,6 +16,8 @@ import {
 import axios from 'axios';
 
 const PatientDietForm = ({ patientId, onCloseForm }) => {
+  const [isForAdd, setisForAdd] = useState(true);
+  const [planId, setPlanId] = useState(null);
   const [FetchedPatientData, setFetchedPatientData] = useState(null);
   const [FetchedDietPlan, setFetchedDietPlans] = useState(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -29,9 +31,13 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
 
   let fetchPatientData = async () => {
     await axios
-      .get(`http://127.0.0.1:8000/api/patients/${patientId}`)
+      .get(`https://doctorbackend.mhtm.ca/api/patients/${patientId}`)
       .then((response) => {
         setFetchedPatientData(response.data);
+        if (response.data.hasPlan == true) {
+          setisForAdd(false)
+          setPlanId(response.data.planId)
+        }
       })
       .catch((error) => {
         setSnackbarMessage("Error fetching patient data.");
@@ -43,7 +49,7 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
   const fetchDietPlans = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://127.0.0.1:8000/api/dietplans");
+      const response = await axios.get("https://doctorbackend.mhtm.ca/api/dietplans");
       setFetchedDietPlans(response.data);
     } catch (error) {
       setSnackbarMessage("Failed to fetch DietPlans. Please try again.");
@@ -73,55 +79,122 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
     Saturday: {},
   });
 
-  const handlePlanChange = (category, labels) => {
+  console.log("mainDietPlans is : " , mainDietPlans);
+  
 
+  let fetchPatientDietData = async () => {
+    await axios
+      .get(`https://doctorbackend.mhtm.ca/api/patientdietplans/${planId}`)
+      .then((response) => {
+        console.log("the response here is : ", response);
+
+        setmainDietPlans((prev) => ({
+          ...prev,  // Spread the previous state
+          ...response.data.DietPlan.DietPlan,  // Spread the fetched diet plan data, which should overwrite the relevant days
+        }));
+
+      })
+      .catch((error) => {
+        setSnackbarMessage("Error fetching Diet Plan data.");
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
+      });
+  };
+
+  useEffect(() => {
+    if (isForAdd == false) {
+      fetchPatientDietData()
+    }
+  }, [isForAdd])
+
+
+  const handlePlanChange = (category, labels) => {
+    // Capitalize the first letter of each word and remove duplicates (case-insensitive)
+    const capitalizeFirstLetter = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  
+    const uniqueLabels = Array.from(
+      new Set(labels.map(label => label.toLowerCase()))
+    ).map(capitalizeFirstLetter);
+  
+    // Update the mainDietPlans state
     setmainDietPlans((prev) => ({
       ...prev,
       [selectedDay]: {
         ...prev[selectedDay],
-        [category]: labels,
+        [category]: uniqueLabels,
       },
     }));
   };
-
-  console.log("mainDietPlans is : " , mainDietPlans);
+  
   
 
   const handleSave = () => {
-    let isValid = true;
-    let missingCategories = [];
 
-    Object.entries(mainDietPlans[selectedDay]).forEach(([category, values]) => {
-      if (!values || values.length === 0) {
-        isValid = false;
-        missingCategories.push(category);
-      }
+    console.log("Final Diet Plan:", mainDietPlans);
+    console.log("planId is : ", planId);
+
+    // Check if all days are empty
+    const allDaysEmpty = Object.values(mainDietPlans).every(dayPlan => {
+      // Check if the dayPlan is empty or all categories inside it are empty arrays
+      return Object.values(dayPlan).every(categoryValues => categoryValues.length === 0);
     });
 
-    if (!isValid) {
-      setSnackbarMessage(`Please select at least one value for: ${missingCategories.join(', ')}`);
+    if (allDaysEmpty) {
+      setSnackbarMessage("Select at least one Diet Rule for the Patient");
       setSnackbarSeverity("error");
-      setOpenSnackbar(true);
+      setOpenSnackbar(true); // Show Snackbar on error
+      setLoading(false);
       return;
     }
 
-    // If all categories are valid, proceed with saving
-    const finalPlan = Object.entries(mainDietPlans).reduce((acc, [day, plans]) => {
-      if (Object.keys(plans).length > 0) {
-        acc[day] = plans;
-      }
-      return acc;
-    }, {});
 
-    console.log("Final Diet Plan:", finalPlan);
+    let mainRequestStruc = {
+      patientId,
+      DietPlan: mainDietPlans
+    }
 
-    alert("Diet Plan saved successfully");
+    const method = planId ? "put" : "post";
+    const url = planId
+      ? `https://doctorbackend.mhtm.ca/api/patientdietplans/${planId}`
+      : `https://doctorbackend.mhtm.ca/api/patientdietplans`
+
+    setLoading(true)
+
+    axios[method](url, mainRequestStruc)
+      .then((res) => {
+        console.log(res);
+
+        setSnackbarMessage(
+          planId
+            ? "Patient's Diet Plan updated successfully!"
+            : "Patient's Diet Plan added successfully!"
+        );
+        setSnackbarSeverity("success");
+        setOpenSnackbar(true); // Show Snackbar on success
+
+        // Set a timeout for 2 seconds (2000 ms) before calling setAddPatients(false)
+        setTimeout(() => {
+          onCloseForm();
+        }, 2000); // 2 seconds delay
+        setLoading(false)
+
+      })
+      .catch((error) => {
+        setSnackbarMessage(error?.response?.data?.message ? error?.response.data.message : "Error submitting form. Please try again.");
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true); // Show Snackbar on error
+        console.error("Error submitting form:", error);
+        setLoading(false)
+      });
+
   };
 
   const handleDaySelect = (day) => {
     setSelectedDay(day);
   };
 
+  console.log("FetchedDietPlan is : " , FetchedDietPlan);
+  
   return (
     <Paper style={{ padding: 20, backgroundColor: '#f5f8fa' }}>
       <Paper style={{ padding: '16px', marginBottom: '20px' }}>
@@ -162,46 +235,49 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
         </Box>
 
         <Box flexGrow={1}>
-          {FetchedDietPlan?.map((meal) => (
-            <FormControl fullWidth variant="outlined" margin="normal" key={meal.category}>
-              <InputLabel
-                id={`${meal.category}-label`}
-                sx={{
-                  background: "#f5f6fa",
-                  paddingLeft: "5px",
-                  paddingRight: "5px",
-                  transform: "translate(14px, 12px) scale(1)",
-                  '&.MuiInputLabel-shrink': {
-                    transform: "translate(14px, -6px) scale(0.75)",
-                  },
-                }}
-              >
-                {meal.category}
-              </InputLabel>
-              <Select
-                labelId={`${meal.category}-label`}
-                multiple
-                value={mainDietPlans[selectedDay][meal.category] || []}
-                onChange={(e) => handlePlanChange(meal.category, e.target.value)}
-                renderValue={(selected) => selected.join(', ')}
-              >
-                {meal.values.map((plan) => (
-                  <MenuItem key={plan} value={plan}>
-                    <Checkbox
-                      checked={mainDietPlans[selectedDay][meal.category]?.includes(plan)}
-                    />
-                    <ListItemText primary={plan} />
-                  </MenuItem>
-                ))}
-               
-              </Select>
-            </FormControl>
-          ))}
+        {FetchedDietPlan?.map((meal) => (
+  <FormControl fullWidth variant="outlined" margin="normal" key={meal.category}>
+    <InputLabel
+      id={`${meal.category}-label`}
+      sx={{
+        background: "#f5f6fa",
+        paddingLeft: "5px",
+        paddingRight: "5px",
+        transform: "translate(14px, 12px) scale(1)",
+        '&.MuiInputLabel-shrink': {
+          transform: "translate(14px, -6px) scale(0.75)",
+        },
+      }}
+    >
+      {meal.category}
+    </InputLabel>
+    <Select
+  labelId={`${meal.category}-label`}
+  multiple
+  value={mainDietPlans[selectedDay][meal.category] || []}
+  onChange={(e) => handlePlanChange(meal.category, e.target.value)}
+  renderValue={(selected) => selected.join(', ')}
+>
+  {meal.values.map((plan) => (
+    <MenuItem key={plan} value={plan}>
+      <Checkbox
+        checked={mainDietPlans[selectedDay][meal.category]?.some(
+          (selectedPlan) => selectedPlan.toLowerCase() === plan.toLowerCase()
+        )}
+      />
+      <ListItemText primary={plan} />
+    </MenuItem>
+  ))}
+</Select>
+
+  </FormControl>
+))}
+
         </Box>
       </Box>
 
-      <Button variant="contained" color="primary" onClick={handleSave} style={{ marginTop: 20 }}>
-        Save Diet Plan
+      <Button variant="contained" color="primary" disabled={loading} onClick={handleSave} style={{ marginTop: 20 }}>
+        {planId ? "Update" : "Save"} Diet Plan
       </Button>
 
       <Snackbar

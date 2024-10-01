@@ -83,7 +83,7 @@ export default function PatientFormPage({ patientId , onCloseForm}) {
   useEffect(() => {
     if (patientId) {
       axios
-        .get(`http://127.0.0.1:8000/api/patients/${patientId}`)
+        .get(`https://doctorbackend.mhtm.ca/api/patients/${patientId}`)
         .then((response) => {
 
           // make that array empty if 
@@ -151,8 +151,8 @@ export default function PatientFormPage({ patientId , onCloseForm}) {
 
     const method = patientId ? "put" : "post";
     const url = patientId
-      ? `http://127.0.0.1:8000/api/patients/${patientId}`
-      : `http://127.0.0.1:8000/api/patients`
+      ? `https://doctorbackend.mhtm.ca/api/patients/${patientId}`
+      : `https://doctorbackend.mhtm.ca/api/patients`
 
     if (patientData.medicalConditions.length == 0) {
       patientData.medicalConditions.push("None");

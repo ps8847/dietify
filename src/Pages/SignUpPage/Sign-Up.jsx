@@ -16,7 +16,7 @@ function SignUp() {
 
     // If token exists, verify it by making an API call
     if (token) {
-      axios.post('http://127.0.0.1:8000/api/admin/verify-token', { token })
+      axios.post('https://doctorbackend.mhtm.ca/api/admin/verify-token', { token })
         .then(response => {
 
           console.log("data is : " , response);

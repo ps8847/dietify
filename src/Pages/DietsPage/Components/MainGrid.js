@@ -9,9 +9,7 @@ import {
   Stack,
   Chip,
   CardActions,
-
   CircularProgress,
-  
   Dialog,
   DialogTitle,
   DialogContent,
@@ -38,7 +36,7 @@ export default function MainGrid() {
   const fetchDietPlans = async () => {
     try {
       setLoading(true); // Start loading
-      const response = await axios.get("http://127.0.0.1:8000/api/dietplans");
+      const response = await axios.get("https://doctorbackend.mhtm.ca/api/dietplans");
       setDietPlans(response.data.sort((a, b) => b.id - a.id));
     } catch (error) {
       console.error("Error fetching DietPlans:", error);
@@ -74,7 +72,7 @@ export default function MainGrid() {
   const confirmDelete = async () => {
     setDeleteLoading(true);
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/dietplans/${DietPlanId}`);
+      await axios.delete(`https://doctorbackend.mhtm.ca/api/dietplans/${DietPlanId}`);
       setDietPlans(DietPlans.filter((dietPlan) => dietPlan.id !== DietPlanId)); // Remove deleted id from state
       setSnackbarMessage("DietPlan Deleted Successfully");
       setSnackbarSeverity("success");
@@ -107,14 +105,22 @@ export default function MainGrid() {
         variant="contained"
         color="primary"
         sx={{ mb: 2 }}
-        onClick={handleToggle}
+        onClick={() => {
+          setShowAddForm(!showAddForm);
+          setDietPlanId(null);
+        }}
       >
         {showAddForm ? "View Diet Plans" : "Add Diet Plan"}
       </Button>
 
       <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-        {showAddForm ? (DietPlanId !== null ? `Update DietPlan for " ${DietPlans.filter(item => item.id == DietPlanId)[0].category} "` 
-        : "Add New Diet Plan") : "Diet Plans List"}
+        {showAddForm
+          ? DietPlanId !== null
+            ? `Update DietPlan for " ${
+                DietPlans.filter((item) => item.id == DietPlanId)[0].category
+              } "`
+            : "Add New Diet Plan"
+          : "Diet Plans List"}
       </Typography>
 
       {/* Loading State */}
@@ -145,7 +151,10 @@ export default function MainGrid() {
         <Grid container spacing={2}>
           <Grid item xs={12}>
             {showAddForm ? (
-              <DietPlanFormPage dietPlanId={DietPlanId} onCloseForm={onCloseForm}/>
+              <DietPlanFormPage
+                dietPlanId={DietPlanId}
+                onCloseForm={onCloseForm}
+              />
             ) : (
               <Grid container spacing={2}>
                 {DietPlans.map((item, index) => (
@@ -206,25 +215,42 @@ export default function MainGrid() {
         </Typography>
       ) : null}
 
-  {/* Delete Confirmation Dialog */}
-  <Dialog open={openDeleteDialog} onClose={() => {setOpenDeleteDialog(false); setDietPlanId(null)}}>
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={openDeleteDialog}
+        onClose={() => {
+          setOpenDeleteDialog(false);
+          setDietPlanId(null);
+        }}
+      >
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
-          <Typography>Are you sure you want to delete this DietPlan?</Typography>
+          <Typography>
+            Are you sure you want to delete this DietPlan?
+          </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => {setOpenDeleteDialog(false); setDietPlanId(null)}} color="primary">
+          <Button
+            onClick={() => {
+              setOpenDeleteDialog(false);
+              setDietPlanId(null);
+            }}
+            color="primary"
+          >
             Cancel
           </Button>
-          <Button onClick={confirmDelete} disabled={Deleteloading}  variant="contained"
+          <Button
+            onClick={confirmDelete}
+            disabled={Deleteloading}
+            variant="contained"
             color="danger"
             size="small"
-            sx={{background:"hsl(0, 90%, 40%)" , color:'white'}}>
-           {Deleteloading ? "Deleting ..." : "Delete"}
+            sx={{ background: "hsl(0, 90%, 40%)", color: "white" }}
+          >
+            {Deleteloading ? "Deleting ..." : "Delete"}
           </Button>
         </DialogActions>
       </Dialog>
-
 
       <Snackbar
         open={openSnackbar}

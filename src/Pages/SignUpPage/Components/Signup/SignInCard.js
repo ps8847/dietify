@@ -112,7 +112,7 @@ export default function SignInCard({ModeToggler}) {
   
     try {
       // API call to sign in
-      const response = await axios.post("http://127.0.0.1:8000/api/admin/login", {
+      const response = await axios.post("https://doctorbackend.mhtm.ca/api/admin/login", {
         email,
         password,
       });
@@ -129,7 +129,7 @@ export default function SignInCard({ModeToggler}) {
       }
     } catch (error) {
       // Handle API error response
-      console.error("Login failed", error.response.data);
+      console.error("Login failed", error?.response?.data);
       setEmailError(true);
       setEmailErrorMessage("Invalid email or password.");
     } finally {

@@ -39,7 +39,7 @@ export default function MainGrid() {
   const fetchPatients = async () => {
     try {
       setLoading(true); // Start loading
-      const response = await axios.get("http://127.0.0.1:8000/api/patients");
+      const response = await axios.get("https://doctorbackend.mhtm.ca/api/patients");
       setPatients(response.data.sort((a, b) => b.id - a.id));
     } catch (error) {
       console.error("Error fetching patients:", error);
@@ -75,7 +75,7 @@ const handleCloseSnackbar = () => {
 const confirmDelete = async () => {
   setDeleteLoading(true)
   try {
-    await axios.delete(`http://127.0.0.1:8000/api/patients/${PatientId}`);
+    await axios.delete(`https://doctorbackend.mhtm.ca/api/patients/${PatientId}`);
     setPatients(patients.filter((patient) => patient.id !== PatientId)); // Remove deleted patient from state
     setSnackbarMessage("Patient Deleted Successfully");
     setSnackbarSeverity("success");
@@ -332,7 +332,7 @@ const onCloseForm = () => {
         variant="contained"
         color="primary"
         sx={{ mb: 2 }}
-        onClick={() => setAddPatients((prev) => !prev)}
+        onClick={() => {setAddPatients((prev) => !prev); setPatientId(null);}}
       >
         {addPatients ? "View All Patients" : "Add Patient"}
       </Button>

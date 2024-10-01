@@ -24,7 +24,7 @@ function ForgotPassword({ open, handleClose }) {
     e.preventDefault();
     setLoading(true)
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/admin/reset-password', { email });
+      const response = await axios.post('https://doctorbackend.mhtm.ca/api/admin/reset-password', { email });
       setOtpSent(true);
       setStep(2); // Move to OTP verification step
       setLoading(false)
@@ -43,7 +43,7 @@ function ForgotPassword({ open, handleClose }) {
     try {
       console.log( email, otp, newPassword );
       
-      const response = await axios.post('http://127.0.0.1:8000/api/admin/verify-otp', { email, otp, new_password: newPassword });
+      const response = await axios.post('https://doctorbackend.mhtm.ca/api/admin/verify-otp', { email, otp, new_password: newPassword });
       console.log("response is :" , response);
       
       resetPopups(2); // Reset back after successful password reset
@@ -61,7 +61,7 @@ function ForgotPassword({ open, handleClose }) {
   const resendOtp = async () => {
     setLoading(true)
     try {
-      await axios.post('http://127.0.0.1:8000/api/admin/resend-otp', { email });
+      await axios.post('https://doctorbackend.mhtm.ca/api/admin/resend-otp', { email });
       setErrorMessage('OTP has been resent to your email.');
       setLoading(false)
     } catch (error) {
