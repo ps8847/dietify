@@ -5,7 +5,6 @@ import MainGrid from './Components/MainGrid'
 function PaymentsPage() {
   return (
 
-    // import maingrid here
     <MainGrid />
   )
 }
