@@ -163,6 +163,7 @@ export default function DietPlanFormPage({ dietPlanId, onCloseForm }) {
         <FormControl fullWidth sx={{ marginBottom: 2 }} required>
           <InputLabel>Category</InputLabel>
           <Select
+          disabled={dietPlanId !== null}
             value={dietPlanData.category}
             required
             label="Category"
