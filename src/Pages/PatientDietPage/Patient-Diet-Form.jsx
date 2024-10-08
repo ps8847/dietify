@@ -14,6 +14,23 @@ import {
   Snackbar,
 } from '@mui/material';
 import axios from 'axios';
+import { MAIN_URL } from '../../Configs/Urls';
+
+const categories = [
+  "Early Morning",
+  "Breakfast",
+  "Mid Meal",
+  "Lunch",
+  "Mid Evening Meal",
+  "Dinner",
+  "All Day",
+];
+
+const categoryOrder = categories.reduce((acc, category, index) => {
+  acc[category] = index;
+  return acc;
+}, {});
+
 
 const PatientDietForm = ({ patientId, onCloseForm }) => {
   const [isForAdd, setisForAdd] = useState(true);
@@ -25,6 +42,10 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const [loading, setLoading] = useState(false);
   const [selectedDay, setSelectedDay] = useState("Sunday");
+
+  console.log("FetchedPatientData is : " , FetchedPatientData);
+  console.log("FetchedDietPlan is : " , FetchedDietPlan);
+  
   const [mainDietPlans, setmainDietPlans] = useState({
     Sunday: {},
     Monday: {},
@@ -42,7 +63,7 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
 
   let fetchPatientData = async () => {
     await axios
-      .get(`https://doctorbackend.mhtm.ca/api/patients/${patientId}`)
+      .get(`${MAIN_URL}patients/${patientId}`)
       .then((response) => {
         setFetchedPatientData(response.data);
         if (response.data.hasPlan == true) {
@@ -60,8 +81,14 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
   const fetchDietPlans = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("https://doctorbackend.mhtm.ca/api/dietplans");
-      setFetchedDietPlans(response.data);
+      const response = await axios.get(`${MAIN_URL}dietplans`);
+
+      // Sort diet plans based on the category order
+     const sortedDietPlans = response.data.sort((a, b) => {
+      return categoryOrder[a.category] - categoryOrder[b.category];
+    });
+
+      setFetchedDietPlans(sortedDietPlans);
     } catch (error) {
       setSnackbarMessage("Failed to fetch DietPlans. Please try again.");
       setSnackbarSeverity("error");
@@ -80,7 +107,7 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
 
   let fetchPatientDietData = async () => {
     await axios
-      .get(`https://doctorbackend.mhtm.ca/api/patientdietplans/${planId}`)
+      .get(`${MAIN_URL}patientdietplans/${planId}`)
       .then((response) => {
         setmainDietPlans((prev) => ({
           ...prev,
@@ -141,8 +168,8 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
 
     const method = planId ? "put" : "post";
     const url = planId
-      ? `https://doctorbackend.mhtm.ca/api/patientdietplans/${planId}`
-      : `https://doctorbackend.mhtm.ca/api/patientdietplans`;
+      ? `${MAIN_URL}patientdietplans/${planId}`
+      : `${MAIN_URL}patientdietplans`;
 
     setLoading(true);
 
@@ -231,7 +258,7 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
                 renderValue={(selected) => selected.join(', ')}
               >
                 {Array.from(new Set([
-                  ...(FetchedDietPlan.find(d => d.category === meal.category)?.values || []),
+                  ...(FetchedDietPlan?.find(d => d.category === meal.category)?.values || []),
                   ...(currentSelections[selectedDay]?.[meal.category] || [])
                 ])).map((plan) => (
                   <MenuItem key={plan} value={plan}>

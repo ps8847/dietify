@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { setadminData } from '../../Redux/Slices/Admin_Slice';
+import { MAIN_URL } from '../../Configs/Urls';
 
 function SignUp() {
 
@@ -16,7 +17,7 @@ function SignUp() {
 
     // If token exists, verify it by making an API call
     if (token) {
-      axios.post('https://doctorbackend.mhtm.ca/api/admin/verify-token', { token })
+      axios.post(`${MAIN_URL}admin/verify-token`, { token })
         .then(response => {
 
           console.log("data is : " , response);

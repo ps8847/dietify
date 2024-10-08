@@ -17,6 +17,7 @@ import {
 import { styled } from "@mui/material/styles";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { MAIN_URL } from "../../Configs/Urls";
 
 const ListItemStyled = styled("li")(({ theme }) => ({
   margin: theme.spacing(0.5),
@@ -83,7 +84,7 @@ export default function PatientFormPage({ patientId , onCloseForm}) {
   useEffect(() => {
     if (patientId) {
       axios
-        .get(`https://doctorbackend.mhtm.ca/api/patients/${patientId}`)
+        .get(`${MAIN_URL}patients/${patientId}`)
         .then((response) => {
 
           // make that array empty if 
@@ -151,8 +152,8 @@ export default function PatientFormPage({ patientId , onCloseForm}) {
 
     const method = patientId ? "put" : "post";
     const url = patientId
-      ? `https://doctorbackend.mhtm.ca/api/patients/${patientId}`
-      : `https://doctorbackend.mhtm.ca/api/patients`
+      ? `${MAIN_URL}patients/${patientId}`
+      : `${MAIN_URL}patients`
 
     if (patientData.medicalConditions.length == 0) {
       patientData.medicalConditions.push("None");

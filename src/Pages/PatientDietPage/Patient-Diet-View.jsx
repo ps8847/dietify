@@ -16,11 +16,25 @@ import {
 import jsPDF from 'jspdf';
 import 'jspdf-autotable'; // Import the autotable plugin for jsPDF
 import axios from 'axios';
+import { MAIN_URL } from '../../Configs/Urls';
 
 // Ordered days of the week and meal categories
 const orderedDaysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const orderedCategories = ['Early Morning', 'Breakfast', 'Mid Meal', 'Lunch', 'Mid Evening Snack', 'Dinner'];
 
+const categories = [
+  "Early Morning",
+  "Breakfast",
+  "Mid Meal",
+  "Lunch",
+  "Mid Evening Meal",
+  "Dinner",
+  "All Day",
+];
+
+const categoryOrder = categories.reduce((acc, category, index) => {
+  acc[category] = index;
+  return acc;
+}, {});
 
 function PatientDietView({ planId, onCloseForm }) {
 
@@ -28,6 +42,8 @@ function PatientDietView({ planId, onCloseForm }) {
   const [DietPlan, setDietPlan] = useState(null);
   const [orderedCategories, setOrderedCategories] = useState([])
 
+  console.log("orderedCategories is : " , orderedCategories);
+  
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
@@ -38,12 +54,21 @@ function PatientDietView({ planId, onCloseForm }) {
 
   let fetchPatientDietData = async () => {
     await axios
-      .get(`https://doctorbackend.mhtm.ca/api/patientdietplans/show/${planId}`)
+      .get(`${MAIN_URL}patientdietplans/show/${planId}`)
       .then((response) => {
         console.log("the response here is : ", response);
         setPatietnData(response.data.Patient)
         setDietPlan(response.data.DietPlan)
-        setOrderedCategories(response.data.CategorisedCategories)
+
+         // Sort diet plans based on the category order
+     const CategorisedCategories = response.data.CategorisedCategories.sort((a, b) => {
+      return categoryOrder[a] - categoryOrder[b];
+    });
+
+    console.log("CategorisedCategories is : " , CategorisedCategories);
+    
+
+        setOrderedCategories(CategorisedCategories)
 
         // setmainDietPlans((prev) => ({
         //   ...prev,  // Spread the previous state

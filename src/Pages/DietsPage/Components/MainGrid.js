@@ -19,6 +19,23 @@ import {
 } from "@mui/material";
 import DietPlanFormPage from "../Diet-Master-Form";
 import axios from "axios";
+import { MAIN_URL } from "../../../Configs/Urls";
+
+// // List of available categories
+const categories = [
+  "Early Morning",
+  "Breakfast",
+  "Mid Meal",
+  "Lunch",
+  "Mid Evening Meal",
+  "Dinner",
+  "All Day",
+];
+
+const categoryOrder = categories.reduce((acc, category, index) => {
+  acc[category] = index;
+  return acc;
+}, {});
 
 export default function MainGrid() {
   const [showAddForm, setShowAddForm] = React.useState(false);
@@ -32,12 +49,18 @@ export default function MainGrid() {
   const [snackbarMessage, setSnackbarMessage] = React.useState("");
   const [snackbarSeverity, setSnackbarSeverity] = React.useState("success"); // For Snackbar severity
 
+
   // Fetch dietplans from API
   const fetchDietPlans = async () => {
     try {
       setLoading(true); // Start loading
-      const response = await axios.get("https://doctorbackend.mhtm.ca/api/dietplans");
-      setDietPlans(response.data.sort((a, b) => b.id - a.id));
+      const response = await axios.get(`${MAIN_URL}dietplans`);
+     // Sort diet plans based on the category order
+     const sortedDietPlans = response.data.sort((a, b) => {
+      return categoryOrder[a.category] - categoryOrder[b.category];
+    });
+
+    setDietPlans(sortedDietPlans);
     } catch (error) {
       console.error("Error fetching DietPlans:", error);
       setError("Failed to fetch DietPlans. Please try again.");
@@ -72,7 +95,7 @@ export default function MainGrid() {
   const confirmDelete = async () => {
     setDeleteLoading(true);
     try {
-      await axios.delete(`https://doctorbackend.mhtm.ca/api/dietplans/${DietPlanId}`);
+      await axios.delete(`${MAIN_URL}dietplans/${DietPlanId}`);
       setDietPlans(DietPlans.filter((dietPlan) => dietPlan.id !== DietPlanId)); // Remove deleted id from state
       setSnackbarMessage("DietPlan Deleted Successfully");
       setSnackbarSeverity("success");
@@ -152,6 +175,7 @@ export default function MainGrid() {
           <Grid item xs={12}>
             {showAddForm ? (
               <DietPlanFormPage
+              allAddedCategories={DietPlans?.map(item => item.category)}
                 dietPlanId={DietPlanId}
                 onCloseForm={onCloseForm}
               />
@@ -206,11 +230,19 @@ export default function MainGrid() {
           </Grid>
         </Grid>
       ) : !loading && !error && DietPlans.length === 0 ? (
+        showAddForm ? (
+          <DietPlanFormPage
+          allAddedCategories={DietPlans?.map(item => item.category)}
+            dietPlanId={DietPlanId}
+            onCloseForm={onCloseForm}
+          />
+        ) :
         <Typography
           component="h2"
           variant="h6"
           sx={{ mb: 2, textAlign: "center", color: "gray" }}
         >
+          
           No DietPlans Data Available
         </Typography>
       ) : null}

@@ -26,6 +26,7 @@ import AddCircleIcon from "@mui/icons-material/AddCircle";
 import { useNavigate } from "react-router-dom";
 import PatientDietView from "../Patient-Diet-View";
 import axios from "axios";
+import { MAIN_URL } from "../../../Configs/Urls";
 
 export default function MainGrid() {
   let [addPatientsDiet, setaddPatientsDiet] = React.useState(false);
@@ -44,7 +45,7 @@ export default function MainGrid() {
   const fetchPatients = async () => {
     try {
       setLoading(true); // Start loading
-      const response = await axios.get("https://doctorbackend.mhtm.ca/api/patients");
+      const response = await axios.get(`${MAIN_URL}patients`);
       setPatients(response.data.sort((a, b) => b.id - a.id));
     } catch (error) {
       console.error("Error fetching patients:", error);
@@ -97,7 +98,7 @@ export default function MainGrid() {
     setDeleteLoading(true);
     try {
       await axios.delete(
-        `https://doctorbackend.mhtm.ca/api/patientdietplans/${PlanId}`
+        `${MAIN_URL}patientdietplans/${PlanId}`
       );
 
       setSnackbarMessage("Patient's Diet Plan Successfully");

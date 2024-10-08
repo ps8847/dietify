@@ -19,6 +19,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { IconButton, InputAdornment } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { MAIN_URL } from "../../../../Configs/Urls";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -112,7 +113,7 @@ export default function SignInCard({ModeToggler}) {
   
     try {
       // API call to sign in
-      const response = await axios.post("https://doctorbackend.mhtm.ca/api/admin/login", {
+      const response = await axios.post(`${MAIN_URL}admin/login`, {
         email,
         password,
       });

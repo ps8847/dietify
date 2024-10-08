@@ -22,6 +22,7 @@ import axios from "axios";
 
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { MAIN_URL } from "../../../Configs/Urls";
 
 export default function MainGrid() {
   const [addPatients, setAddPatients] = React.useState(false);
@@ -39,7 +40,7 @@ export default function MainGrid() {
   const fetchPatients = async () => {
     try {
       setLoading(true); // Start loading
-      const response = await axios.get("https://doctorbackend.mhtm.ca/api/patients");
+      const response = await axios.get(`${MAIN_URL}patients`);
       setPatients(response.data.sort((a, b) => b.id - a.id));
     } catch (error) {
       console.error("Error fetching patients:", error);
@@ -75,7 +76,7 @@ const handleCloseSnackbar = () => {
 const confirmDelete = async () => {
   setDeleteLoading(true)
   try {
-    await axios.delete(`https://doctorbackend.mhtm.ca/api/patients/${PatientId}`);
+    await axios.delete(`${MAIN_URL}patients/${PatientId}`);
     setPatients(patients.filter((patient) => patient.id !== PatientId)); // Remove deleted patient from state
     setSnackbarMessage("Patient Deleted Successfully");
     setSnackbarSeverity("success");

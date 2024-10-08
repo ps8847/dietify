@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import axios from "axios";
+import { MAIN_URL } from "../../Configs/Urls";
 
 const textFieldStyle = {
   "& .MuiInputLabel-root": {
@@ -101,7 +102,7 @@ console.log("errors is : " , errors);
   useEffect(() => {
     if (paymentId) {
       axios
-        .get(`https://doctorbackend.mhtm.ca/api/payments/${paymentId}`)
+        .get(`${MAIN_URL}payments/${paymentId}`)
         .then((response) => {
 
           // make that array empty if 
@@ -154,8 +155,8 @@ response.data.paymentDate = getFormattedDate(response.data.paymentDate)
 
     const method = paymentId ? "put" : "post";
     const url = paymentId
-      ? `https://doctorbackend.mhtm.ca/api/payments/${paymentId}`
-      : `https://doctorbackend.mhtm.ca/api/payments`
+      ? `${MAIN_URL}payments/${paymentId}`
+      : `${MAIN_URL}payments`
 
     setLoading(true)
     

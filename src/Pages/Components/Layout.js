@@ -11,6 +11,7 @@ import getCustomTheme from '../../Theme/CustomTheme';
 import { useDispatch } from 'react-redux';
 import axios from 'axios';
 import { setadminData } from '../../Redux/Slices/Admin_Slice';
+import { MAIN_URL } from '../../Configs/Urls';
 
 export default function Layout({ AppnavHeading, HeaderHeading }) {
 
@@ -27,7 +28,7 @@ export default function Layout({ AppnavHeading, HeaderHeading }) {
 
     // If token exists, verify it by making an API call
     if (token) {
-      axios.post('https://doctorbackend.mhtm.ca/api/admin/verify-token', { token })
+      axios.post(`${MAIN_URL}admin/verify-token`, { token })
         .then(response => {
           // If token is valid, navigate to the /patients page
           if (response.status === 200) {

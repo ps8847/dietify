@@ -10,6 +10,7 @@ import CustomizedDataGrid from "../../Components/CustomizedDataGrid";
 import { columns, rows } from "./gridData";
 import PaymentFormPage from "../Payment-Form";
 import axios from "axios";
+import { MAIN_URL } from "../../../Configs/Urls";
 
 const getFormattedDate = (date) => {
 
@@ -47,7 +48,7 @@ export default function MainGrid() {
   const fetchPayments = async () => {
     try {
       setLoading(true); // Start loading
-      const response = await axios.get("https://doctorbackend.mhtm.ca/api/payments");
+      const response = await axios.get(`${MAIN_URL}payments`);
       setPayments(response.data.sort((a, b) => b.id - a.id));
     } catch (error) {
       console.error("Error fetching payments:", error);
@@ -83,7 +84,7 @@ export default function MainGrid() {
   const confirmDelete = async () => {
     setDeleteLoading(true);
     try {
-      await axios.delete(`https://doctorbackend.mhtm.ca/api/payments/${PaymentId}`);
+      await axios.delete(`${MAIN_URL}payments/${PaymentId}`);
       setPayments(Payments.filter((payments) => payments.id !== PaymentId)); // Remove deleted payment from state
       setSnackbarMessage("payment Deleted Successfully");
       setSnackbarSeverity("success");
