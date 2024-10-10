@@ -42,8 +42,8 @@ function PatientDietView({ planId, onCloseForm }) {
   const [DietPlan, setDietPlan] = useState(null);
   const [orderedCategories, setOrderedCategories] = useState([])
 
-  console.log("orderedCategories is : " , orderedCategories);
-  
+  console.log("orderedCategories is : ", orderedCategories);
+
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
@@ -60,13 +60,13 @@ function PatientDietView({ planId, onCloseForm }) {
         setPatietnData(response.data.Patient)
         setDietPlan(response.data.DietPlan)
 
-         // Sort diet plans based on the category order
-     const CategorisedCategories = response.data.CategorisedCategories.sort((a, b) => {
-      return categoryOrder[a] - categoryOrder[b];
-    });
+        // Sort diet plans based on the category order
+        const CategorisedCategories = response.data.CategorisedCategories.sort((a, b) => {
+          return categoryOrder[a] - categoryOrder[b];
+        });
 
-    console.log("CategorisedCategories is : " , CategorisedCategories);
-    
+        console.log("CategorisedCategories is : ", CategorisedCategories);
+
 
         setOrderedCategories(CategorisedCategories)
 
@@ -97,25 +97,25 @@ function PatientDietView({ planId, onCloseForm }) {
     const doc = new jsPDF();
     doc.setFontSize(18);
     doc.text('Patient Diet Plan', 14, 20);
-  
+
     // Patient Information
     doc.setFontSize(12);
     doc.text(`Name: ${patientData?.name}`, 14, 30);
     doc.text(`Age: ${patientData?.age}`, 14, 35);
-  
+
     const today = new Date();
     const dateString = today.toLocaleDateString();
     doc.text(`Date: ${dateString}`, 14, 40);
-  
+
     const tableColumn = ['Day', 'Category', 'Items'];
     const tableRows = [];
-  
+
     orderedDaysOfWeek?.forEach((day) => {
       let isFirstCategoryForDay = true;
-  
+
       orderedCategories?.forEach((category) => {
         const items = DietPlan?.[day]?.[category]?.join(', ') || '---';
-  
+
         // If this is the first category for the day, add the day to the first row and leave it blank for the rest
         if (isFirstCategoryForDay) {
           tableRows.push([day, category, items]);
@@ -125,7 +125,7 @@ function PatientDietView({ planId, onCloseForm }) {
         }
       });
     });
-  
+
     // Generate the table in the PDF
     doc.autoTable({
       head: [tableColumn],
@@ -142,11 +142,11 @@ function PatientDietView({ planId, onCloseForm }) {
         }
       },
     });
-  
+
     // Save the PDF
     doc.save('diet-plan.pdf');
   };
-  
+
 
 
   return (

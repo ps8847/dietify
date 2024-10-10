@@ -8,6 +8,7 @@ import DietMaster from "../Pages/DietsPage/Diet-Master";
 import Layout from "../Pages/Components/Layout";
 import PatientDietPage from "../Pages/PatientDietPage/Patient-Diet-Page";
 import PaymentsPage from "../Pages/PaymentsPage/Payments-Page";
+import PatientAddFormOpen from "../Pages/PatientsPage/PatientAddFormOpen";
 
 const router = createBrowserRouter([
   
@@ -15,6 +16,11 @@ const router = createBrowserRouter([
     path: "auth/SignUp",
     exact: true,
     element: <SignUp />,
+  },
+  {
+    path: "add-patient",
+    exact: true,
+    element: <PatientAddFormOpen />,
   },
   {
     path: "/",

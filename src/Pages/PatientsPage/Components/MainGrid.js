@@ -36,8 +36,10 @@ export default function MainGrid() {
   const [snackbarMessage, setSnackbarMessage] = React.useState("");
   const [snackbarSeverity, setSnackbarSeverity] = React.useState("success"); // For Snackbar severity
 
+  const [openEdit , setopenEdit] = React.useState(false)
   // Fetch patients from API
   const fetchPatients = async () => {
+ 
     try {
       setLoading(true); // Start loading
       const response = await axios.get(`${MAIN_URL}patients`);
@@ -50,16 +52,19 @@ export default function MainGrid() {
     }
   };
 
+  let [PatientId , setPatientId] = React.useState(null)
+
   // Fetch patients on component mount
   React.useEffect(() => {
     fetchPatients();
   }, [addPatients]);
 
-  let [PatientId , setPatientId] = React.useState(null)
+
 
 const handleEdit = (row) => {
   console.log("Edit row:", row);
   setPatientId(row.id)
+  setopenEdit(true)
   setAddPatients(true)
 };
 
@@ -96,251 +101,293 @@ const confirmDelete = async () => {
 
 const onCloseForm = () => {
   setPatientId(null);
-  setAddPatients(false);
+  setAddPatients(false)
+  setopenEdit(false)
 };
 
-  const columns = [
-    {
-      field: "name",
-      headerName: "Name",
-      flex: 1,
-      minWidth: 150,
-      renderCell: (params) => (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "start",
-            alignItems: "center",
-            height: "100%",
-            whiteSpace: "normal",
-            overflowWrap: "anywhere",
+const columns = [
+  {
+    field: "name",
+    headerName: "Name",
+    
+    minWidth: 150,
+    renderCell: (params) => (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "start",
+          alignItems: "center",
+          height: "100%",
+          whiteSpace: "normal",
+          overflowWrap: "anywhere",
+        }}
+      >
+        {params.value}
+      </div>
+    ),
+  },
+  {
+    field: "contactInfo",
+    headerName: "Contact Information",
+
+    minWidth: 250,
+    renderCell: (params) => (
+      <div style={{ display: "flex", flexDirection: "column", whiteSpace: "pre-wrap" }}>
+        <strong>Address:</strong> {params.row.address}
+        <strong>Email:</strong> {params.row.email}
+        <strong>Contact No:</strong> {params.row.contactNumber}
+      </div>
+    ),
+  },
+  {
+    field: "gender",
+    headerName: "Gender",
+    flex: 0.8,
+    minWidth: 100,
+    renderCell: (params) => (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "start",
+          alignItems: "center",
+          height: "100%",
+        }}
+      >
+        {params.value}
+      </div>
+    ),
+  },
+  {
+    field: "age",
+    headerName: "Age",
+ 
+    minWidth: 70,
+    renderCell: (params) => (
+      <div style={{ display: "flex", justifyContent: "start", alignItems: "center", height: "100%" }}>
+        {params.value}
+      </div>
+    ),
+  },
+  {
+    field: "height",
+    headerName: "Height",
+  
+    minWidth: 70,
+    renderCell: (params) => (
+      <div style={{ display: "flex", justifyContent: "start", alignItems: "center", height: "100%" }}>
+        {params.value} ft
+      </div>
+    ),
+  },
+  {
+    field: "weight",
+    headerName: "Weight",
+  
+    minWidth: 70,
+    renderCell: (params) => (
+      <div style={{ display: "flex", justifyContent: "start", alignItems: "center", height: "100%" }}>
+        {params.value} kg
+      </div>
+    ),
+  },
+  {
+    field: "dietaryPreference",
+    headerName: "Dietary Preference",
+ 
+    minWidth: 150,
+    renderCell: (params) => (
+      <div style={{ display: "flex", justifyContent: "start", alignItems: "center", height: "100%" }}>
+        {params.value}
+      </div>
+    ),
+  },
+  {
+    field: "alcohol",
+    headerName: "Alcohol",
+    
+    minWidth: 80,
+    renderCell: (params) => (
+      <div style={{ display: "flex", justifyContent: "start", alignItems: "center", height: "100%" }}>
+        {params.value}
+      </div>
+    ),
+  },
+  {
+    field: "exerciseRegime",
+    headerName: "Exercise Regime",
+   
+    minWidth: 150,
+    renderCell: (params) => (
+      <Stack direction="column" spacing={1} alignItems={'center'} justifyContent={'center'} height={'100%'}>
+        {params.value?.map((exercise, index) => (
+          <Chip key={index} label={exercise} color="primary" variant="outlined" />
+        ))}
+      </Stack>
+    ),
+  },
+  {
+    field: "lifestyle",
+    headerName: "Lifestyle",
+   
+    minWidth: 120,
+    renderCell: (params) => (
+      <div style={{ display: "flex", justifyContent: "start", alignItems: "center", height: "100%" }}>
+        {params.value}
+      </div>
+    ),
+  },
+  {
+    field: "jobSpecifications",
+    headerName: "Job Specifications",
+  
+    minWidth: 150,
+    renderCell: (params) => (
+      <div style={{ display: "flex", justifyContent: "start", alignItems: "center", height: "100%" }}>
+        {params.value}
+      </div>
+    ),
+  },
+  {
+    field: "familyHistory",
+    headerName: "Family History",
+   
+    minWidth: 150,
+    renderCell: (params) => (
+      <div style={{ display: "flex", justifyContent: "start", alignItems: "center", height: "100%" }}>
+        {params.value}
+      </div>
+    ),
+  },
+  {
+    field: "physiologicalConditions",
+    headerName: "Physiological Conditions",
+
+    minWidth: 200,
+    renderCell: (params) => (
+
+      <Stack direction="column" spacing={1} alignItems={'center'} justifyContent={'center'} height={'100%'}>
+      {params.value?.map((condtion, index) => (
+        <Chip key={index} label={condtion} color="primary" variant="outlined" />
+      ))}
+    </Stack>
+
+     
+    ),
+  },
+  {
+    field: "surgery",
+    headerName: "Surgery",
+   
+    minWidth: 120,
+    renderCell: (params) => (
+      <div style={{ display: "flex", justifyContent: "start", alignItems: "center", height: "100%" }}>
+      {params.value}
+    </div>
+    ),
+  },
+  {
+    field: "medications",
+    headerName: "Medications",
+  
+    minWidth: 80,
+    renderCell: (params) => (
+      <div style={{ display: "flex", justifyContent: "start", alignItems: "center", height: "100%" }}>
+        {params.value}
+      </div>
+    ),
+  },
+  {
+    field: "supplements",
+    headerName: "Supplements",
+ 
+    minWidth: 100,
+    renderCell: (params) => (
+      <div style={{ display: "flex", justifyContent: "start", alignItems: "center", height: "100%" }}>
+      {params.value}
+    </div>
+    ),
+  },
+  
+  {
+    field: "eatingPattern",
+    headerName: "Eating Pattern",
+  
+    minWidth: 150,
+    renderCell: (params) => (
+      <div style={{ display: "flex", justifyContent: "start", alignItems: "center", height: "100%" }}>
+        {params.value}
+      </div>
+    ),
+  },
+
+  {
+    field: "actions",
+    headerName: "Actions",
+    width: 180,
+    sortable: false,
+    renderCell: (params) => (
+      <div style={{ display: "flex", gap: "8px", padding: "5px", alignItems: "center", justifyContent: "center", height: "100%" }}>
+        <Button
+          variant="contained"
+          color="primary"
+          size="small"
+          startIcon={<EditIcon />}
+          onClick={(event) => {
+            event.stopPropagation();
+            handleEdit(params.row);
           }}
         >
-          {params.value}
-        </div>
-      ),
-    },
-    {
-      field: "age",
-      headerName: "Age",
-      flex: 1,
-      minWidth: 100,
-      renderCell: (params) => (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "start",
-            alignItems: "center",
-            height: "100%",
+          Edit
+        </Button>
+        <Button
+          variant="contained"
+          color="danger"
+          size="small"
+          sx={{ background: "hsl(0, 90%, 40%)", color: 'white' }}
+          startIcon={<DeleteIcon />}
+          onClick={(event) => {
+            event.stopPropagation();
+            handleDelete(params.row);
           }}
         >
-          {params.value}
-        </div>
-      ),
-    },
-    {
-      field: "gender",
-      headerName: "Gender",
-      flex: 0.8,
-      minWidth: 100,
-      renderCell: (params) => (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "start",
-            alignItems: "center",
-            height: "100%",
-          }}
-        >
-          {params.value}
-        </div>
-      ),
-    },
-    {
-      field: "contactNumber",
-      headerName: "Contact Number",
-      flex: 1.5,
-      minWidth: 150,
-      renderCell: (params) => (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "start",
-            alignItems: "center",
-            height: "100%",
-          }}
-        >
-          {params.value}
-        </div>
-      ),
-    },
-    {
-      field: "email",
-      headerName: "Email",
-      flex: 1.5,
-      minWidth: 200,
-      renderCell: (params) => (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "start",
-            alignItems: "center",
-            height: "100%",
-          }}
-        >
-          {params.value}
-        </div>
-      ),
-    },
-    {
-      field: "medicalConditions",
-      headerName: "Medical Conditions",
-      flex: 2,
-      minWidth: 200,
-      renderCell: (params) => (
-        <Stack
-          direction="column"
-          pacing={1}
-          sx={{ p: 1 }}
-          spacing={1}
-          wrap="wrap"
-        >
-          {params.value.map((condition, index) => (
-            <Chip
-              key={index}
-              label={condition}
-              color="primary"
-              variant="outlined"
-              style={{ marginBottom: "4px" }}
-            />
-          ))}
-        </Stack>
-      ),
-    },
-    {
-      field: "allergies",
-      headerName: "Allergies",
-      flex: 1.5,
-      minWidth: 150,
-      renderCell: (params) => (
-        <Stack
-          direction="column"
-          pacing={1}
-          sx={{ p: 1 }}
-          spacing={1}
-          wrap="wrap"
-        >
-          {params.value.map((allergy, index) => (
-            <Chip
-              key={index}
-              label={allergy}
-              color="secondary"
-              variant="outlined"
-              style={{ marginBottom: "4px" }}
-            />
-          ))}
-        </Stack>
-      ),
-    },
-    {
-      field: "currentMedications",
-      headerName: "Current Medications",
-      flex: 1.5,
-      minWidth: 180,
-      renderCell: (params) => (
-        <Stack direction="column" spacing={1} sx={{ p: 1 }} wrap="wrap">
-          {params.value.map((medication, index) => (
-            <Chip
-              key={index}
-              label={medication}
-              color="success"
-              variant="outlined"
-              style={{ marginBottom: "4px" }}
-            />
-          ))}
-        </Stack>
-      ),
-    },
-    {
-      field: "emergencyContact",
-      headerName: "Emergency Contact",
-      flex: 1.5,
-      minWidth: 180,
-      renderCell: (params) => (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "start",
-            alignItems: "center",
-            height: "100%",
-          }}
-        >
-          {params.value}
-        </div>
-      ),
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 180,
-      sortable: false,
-      renderCell: (params) => (
-        <div
-          style={{
-            display: "flex",
-            gap: "8px",
-            padding: "5px",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "100%",
-          }}
-        >
-          <Button
-            variant="contained"
-            color="primary"
-            size="small"
-            startIcon={<EditIcon />}
-            onClick={(event) => {
-              event.stopPropagation();
-              handleEdit(params.row);
-            }}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="contained"
-            color="danger"
-            size="small"
-            sx={{background:"hsl(0, 90%, 40%)" , color:'white'}}
-            startIcon={<DeleteIcon />}
-            onClick={(event) => {
-              event.stopPropagation();
-              handleDelete(params.row);
-            }}
-          >
-            Delete
-          </Button>
-        </div>
-      ),
-    },
-  ];
+          Delete
+        </Button>
+      </div>
+    ),
+  },
+];
+
+
 
 
   return (
     <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" }, p: 3 }}>
       {/* Add Patient Button */}
-      <Button
+
+      {/* <Button
         variant="contained"
         color="primary"
         sx={{ mb: 2 }}
         onClick={() => {setAddPatients((prev) => !prev); setPatientId(null);}}
       >
         {addPatients ? "View All Patients" : "Add Patient"}
+      </Button> */}
+
+{
+  PatientId !== null && 
+      <Button
+        variant="contained"
+        color="primary"
+        sx={{ mb: 2 }}
+        onClick={() => {setAddPatients((prev) => !prev); setPatientId(null);}}
+      >
+        View All Patients
       </Button>
+}
 
       {/* Title */}
       <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-        {addPatients ? (PatientId !== null ? `Update Data of " ${patients.filter(item => item.id == PatientId)[0].name} "` : "Add New Patient") : "Patients List"}
+        {PatientId !== null ? `Update Data of " ${patients.filter(item => item.id == PatientId)[0].name} "` : "Patients List"}
       </Typography>
 
       {/* Loading State */}
@@ -371,7 +418,7 @@ const onCloseForm = () => {
       {!loading && !error && patients.length > 0 ? (
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            {addPatients ? (
+            {openEdit == true && PatientId !== null ? (
               <PatientFormPage patientId={PatientId} onCloseForm={onCloseForm} />
             ) : (
               <CustomizedDataGrid rows={patients} columns={columns} />

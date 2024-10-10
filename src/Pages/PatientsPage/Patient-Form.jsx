@@ -13,6 +13,10 @@ import {
   FormControl,
   Snackbar,
   Alert,
+  FormControlLabel,
+  RadioGroup,
+  Radio,
+  Checkbox,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import axios from "axios";
@@ -58,28 +62,65 @@ const textFieldStyle = {
   },
 };
 
-export default function PatientFormPage({ patientId , onCloseForm}) {
+const exerciseOptions = [
+  "Light exercise (yoga, stretching)",
+  "Walk (light, brisk, jog)",
+  "Weight/resistance training",
+  "None",
+];
+
+const physiologicalOptions = [
+  "Obesity",
+  "Hypothyroid",
+  "Diabetes mellitus",
+  "Hypertension",
+  "Dyslipidemia",
+  "Acidity",
+  "Constipation",
+  "Any deficiency",
+  "Arthritis",
+  "Other",
+];
+
+
+
+export default function PatientFormPage({ patientId, onCloseForm }) {
+
   const [patientData, setPatientData] = useState({
     name: "",
     age: "",
-    gender: "",
+    height: "",
+    weight: "",
+    dietaryPreference: "",
+    alcohol: "",
+    gender:"",
+    foodAllergy: "",
+    exerciseRegime: [],
+    lifestyle: "",
+    jobSpecifications: "",
+    familyHistory: "",
+    physiologicalConditions: [],
+    otherPhysiologicalCondition: "",
+    surgery: "",
+
+    medications: "",
+    supplements: "",
+    eatingPattern: "",
     contactNumber: "",
     email: "",
-    emergencyContact: "",
-    medicalConditions: [],
-    allergies: [],
-    currentMedications: [],
+    address: "",
   });
 
-  const [conditionInput, setConditionInput] = useState("");
-  const [allergyInput, setAllergyInput] = useState("");
-  const [medicationInput, setMedicationInput] = useState("");
+
+  console.log("patientData is : " , patientData);
+  
+
   const [openSnackbar, setOpenSnackbar] = useState(false); // For Snackbar visibility
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // For Snackbar severity
   const [errors, setErrors] = useState({});
 
-  const [loading  ,  setLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (patientId) {
@@ -88,19 +129,12 @@ export default function PatientFormPage({ patientId , onCloseForm}) {
         .then((response) => {
 
           // make that array empty if 
-
-          if(response.data.medicalConditions.length == 1 && response.data.medicalConditions[0] == "None"){
-            response.data.medicalConditions = []
-          }
-          if(response.data.allergies.length == 1 && response.data.allergies[0] == "None"){
-            response.data.allergies = []
-          }
-          if(response.data.currentMedications.length == 1 && response.data.currentMedications[0] == "None"){
-            response.data.currentMedications = []
-          }
+         
           setPatientData(response.data);
         })
         .catch((error) => {
+          console.log("erro is : ", error);
+
           setSnackbarMessage("Error fetching patient data.");
           setSnackbarSeverity("error");
           setOpenSnackbar(true);
@@ -108,111 +142,94 @@ export default function PatientFormPage({ patientId , onCloseForm}) {
     }
   }, [patientId]);
 
-  const handleDelete = (chipToDelete, type) => () => {
-    setPatientData((prevData) => ({
-      ...prevData,
-      [type]: prevData[type].filter((chip) => chip !== chipToDelete),
-    }));
-  };
-
+ 
   const handleInputChange = (event) => {
+    setErrors({})
     const { name, value } = event.target;
     setPatientData((prevData) => ({
-      ...prevData,
-      [name]: value,
+        ...prevData,
+        [name]: value,
     }));
-  };
+};
 
-  const validate = () => {
-    const newErrors = {};
+const handleCheckboxChange = (event, type) => {
+    setErrors({})
+    const { checked, value } = event.target;
+    setPatientData((prevData) => ({
+        ...prevData,
+        [type]: checked
+            ? [...prevData[type], value]
+            : prevData[type].filter((item) => item !== value),
+    }));
+};
 
-    if (!patientData.name) newErrors.name = "Name is required.";
-    if (!patientData.age || patientData.age < 0)
-      newErrors.age = "Age must be a positive number.";
-    if (!patientData.gender) newErrors.gender = "Gender is required.";
-    if (!patientData.contactNumber)
-      newErrors.contactNumber = "Contact number is required.";
-    if (!patientData.email) {
-      newErrors.email = "Email is required.";
-    } else if (!/\S+@\S+\.\S+/.test(patientData.email)) {
-      newErrors.email = "Email is invalid.";
-    }
-    if (!patientData.emergencyContact)
-      newErrors.emergencyContact = "Emergency contact is required.";
+const validateForm = () => {
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // Return true if no errors
-  };
+    let formErrors = {};
+    if (!patientData.name) formErrors.name = "Name is required";
+    if (!patientData.age || isNaN(patientData.age) || patientData.age <= 0) formErrors.age = "Valid age is required";
+    if (!patientData.height || isNaN(patientData.height) || patientData.height <= 0) formErrors.height = "Valid height is required";
+    if (!patientData.weight || isNaN(patientData.weight) || patientData.weight <= 0) formErrors.weight = "Valid weight is required";
+    if (!patientData.dietaryPreference) formErrors.dietaryPreference = "Dietary preference is required";
+    if (!patientData.alcohol) formErrors.alcohol = "Alcohol consumption choice is required";
+    if (!patientData.gender) formErrors.gender = "Gender is required";
+    if (!patientData.foodAllergy) formErrors.foodAllergy = "Food Allergy is required field";
+    if (patientData.exerciseRegime.length == 0) formErrors.exerciseRegime = "Please Select atleast one Exercise Regime";
+    if (!patientData.lifestyle) formErrors.lifestyle = "LifeStyle choice is required";
+    if (!patientData.jobSpecifications) formErrors.jobSpecifications = "Job Specifications is required";
+    if (!patientData.familyHistory) formErrors.familyHistory = "Family History is required";
+    if (patientData.physiologicalConditions.includes("Other") && !patientData.otherPhysiologicalCondition)
+        formErrors.otherPhysiologicalCondition = "Please specify the other condition";
+    if (!patientData.surgery) formErrors.surgery = "Surgery is required filed";
+    if (!patientData.medications) formErrors.medications = "Medications is required filed";
+    if (!patientData.supplements) formErrors.supplements = "Supplements is required filed";
+    if (!patientData.eatingPattern) formErrors.eatingPattern = "Please Mention your Eating Pattern";
+    if (!patientData.contactNumber) formErrors.contactNumber = "Contact number is required";
+    if (!patientData.email) formErrors.email = "Email is required";
+    if (!patientData.address) formErrors.address = "Address is required";
 
+    setErrors(formErrors);
+    return Object.keys(formErrors).length === 0;
+};
 
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    if (!validate()) return;
-
-    const method = patientId ? "put" : "post";
-    const url = patientId
-      ? `${MAIN_URL}patients/${patientId}`
-      : `${MAIN_URL}patients`
-
-    if (patientData.medicalConditions.length == 0) {
-      patientData.medicalConditions.push("None");
-    }
-    if (patientData.allergies.length == 0) {
-      patientData.allergies.push("None");
-    }
-    if (patientData.currentMedications.length == 0) {
-      patientData.currentMedications.push("None");
-    }
-    setLoading(true)
-    
-    axios[method](url, patientData)
-    .then(() => {
-        setSnackbarMessage(
-          patientId
-          ? "Patient updated successfully!"
-          : "Patient added successfully!"
-        );
-        setSnackbarSeverity("success");
-        setOpenSnackbar(true); // Show Snackbar on success
+    if (validateForm()){
+      const method = "put";
+      const url = `${MAIN_URL}patients/${patientId}`
         
-        // Set a timeout for 2 seconds (2000 ms) before calling setAddPatients(false)
-       setTimeout(() => {
-        onCloseForm();
-      }, 2000); // 2 seconds delay
-         setLoading(false)
-         
+      setLoading(true)
+  
+      axios[method](url, patientData)
+        .then(() => {
+          setSnackbarMessage("Patient updated successfully!");
+          setSnackbarSeverity("success");
+          setOpenSnackbar(true); // Show Snackbar on success
+  
+          // Set a timeout for 2 seconds (2000 ms) before calling setAddPatients(false)
+          setTimeout(() => {
+            onCloseForm();
+          }, 2000); // 2 seconds delay
+          setLoading(false)
+  
         })
-      .catch((error) => {
-        setSnackbarMessage(error?.response?.data?.message ? error?.response.data.message : "Error submitting form. Please try again.");
-        setSnackbarSeverity("error");
-        setOpenSnackbar(true); // Show Snackbar on error
-        console.error("Error submitting form:", error);
-        setLoading(false)
-      });
+        .catch((error) => {
+          setSnackbarMessage(error?.response?.data?.message ? error?.response.data.message : "Error submitting form. Please try again.");
+          setSnackbarSeverity("error");
+          setOpenSnackbar(true); // Show Snackbar on error
+          console.error("Error submitting form:", error);
+          setLoading(false)
+        });
+    } else {
+      setSnackbarMessage("Form Not Filled Properly , Please Check and Tru Again");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true); // Show Snackbar on success
+    }
+
   };
 
-  const addChip = (type, inputValue) => {
-    if (inputValue) {
-      setPatientData((prevData) => ({
-        ...prevData,
-        [type]: [...prevData[type], inputValue],
-      }));
-      switch (type) {
-        case "medicalConditions":
-          setConditionInput("");
-          break;
-        case "allergies":
-          setAllergyInput("");
-          break;
-        case "currentMedications":
-          setMedicationInput("");
-          break;
-        default:
-          break;
-      }
-    }
-  };
+ 
 
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
@@ -221,178 +238,327 @@ export default function PatientFormPage({ patientId , onCloseForm}) {
   return (
     <Box sx={{ width: "100%", mx: "auto", mt: 1 }}>
       <form onSubmit={handleSubmit}>
-        <div style={{ display: "flex", gap: "5px" }}>
-         
+        <Stack spacing={3}>
+          {/* Name */}
           <TextField
-            error={!!errors.name}
-            helperText={errors.name}
             fullWidth
             name="name"
             variant="outlined"
-            placeholder="Enter patient name"
+            label="Patient Name"
             value={patientData.name}
             onChange={handleInputChange}
+            error={!!errors.name}
+            helperText={errors.name}
             required
-            sx={textFieldStyle}
           />
-         
+
+          {/* Contact Details */}
+          <Stack direction="row" spacing={2}>
+            <TextField
+              fullWidth
+              name="email"
+              variant="outlined"
+              label="Email"
+              type="email"
+              value={patientData.email}
+              onChange={handleInputChange}
+              error={!!errors.email}
+              helperText={errors.email}
+              required
+            />
+            <TextField
+              fullWidth
+              name="contactNumber"
+              variant="outlined"
+              label="Contact Number"
+              value={patientData.contactNumber}
+              onChange={handleInputChange}
+              error={!!errors.contactNumber}
+              helperText={errors.contactNumber}
+              required
+            />
+          </Stack>
+
+          {/* Address */}
           <TextField
             fullWidth
-            error={!!errors.age}
-            helperText={errors.age}
-            name="age"
+            name="address"
             variant="outlined"
-            type="number"
-            placeholder="Enter age"
-            value={patientData.age}
+            label="Address"
+            value={patientData.address}
             onChange={handleInputChange}
+            error={!!errors.address}
+            helperText={errors.address}
             required
-            sx={textFieldStyle}
           />
-          
-        </div>
 
-        <div style={{ marginTop: "15px" }}>
-          <FormControl
+          <TextField
             fullWidth
+            name="foodAllergy"
+            variant="outlined"
+            label={`Any Food Allergy ( Type "No" if have No Allergy Currently )`}
+            value={patientData.foodAllergy}
+            onChange={handleInputChange}
+            error={!!errors.foodAllergy}
+            helperText={errors.foodAllergy}
             required
-            variant="outlined">
-            <InputLabel id="gender-label">Gender</InputLabel>
-            <Select
-              labelId="gender-label"
+          />
+
+          {/* Age, Height, Weight */}
+          <Stack direction="row" spacing={2}>
+            <TextField
+              fullWidth
+              name="age"
+              variant="outlined"
+              label="Age"
+              type="number"
+              value={patientData.age}
+              onChange={handleInputChange}
+              error={!!errors.age}
+              helperText={errors.age}
+              required
+            />
+            <TextField
+              fullWidth
+              name="height"
+              variant="outlined"
+              label="Height"
+              type="number"
+              value={patientData.height}
+              onChange={handleInputChange}
+              error={!!errors.height}
+              helperText={errors.height}
+              required
+            />
+            <TextField
+              fullWidth
+              name="weight"
+              variant="outlined"
+              label="Weight (kg)"
+              type="number"
+              value={patientData.weight}
+              onChange={handleInputChange}
+              error={!!errors.weight}
+              helperText={errors.weight}
+              required
+            />
+          </Stack>
+
+          {/* Dietary Preference */}
+          <FormControl>
+            <Typography>Dietary Preference</Typography>
+            <RadioGroup
+              name="dietaryPreference"
+              value={patientData.dietaryPreference}
+              onChange={handleInputChange}
+            >
+              <FormControlLabel
+                value="Pure vegetarian"
+                control={<Radio />}
+                label="Pure vegetarian"
+              />
+              <FormControlLabel
+                value="Vegetarian + eggs"
+                control={<Radio />}
+                label="Vegetarian + eggs"
+              />
+              <FormControlLabel
+                value="Non vegetarian"
+                control={<Radio />}
+                label="Non vegetarian"
+              />
+              <FormControlLabel
+                value="Vegan"
+                control={<Radio />}
+                label="Vegan"
+              />
+            </RadioGroup>
+            {errors.dietaryPreference && <Typography color="error">{errors.dietaryPreference}</Typography>}
+          </FormControl>
+
+          {/* Alcohol */}
+          <FormControl>
+            <Typography>Alcohol Consumption</Typography>
+            <RadioGroup
+              name="alcohol"
+              value={patientData.alcohol}
+              onChange={handleInputChange}
+            >
+              <FormControlLabel value="Yes" control={<Radio />} label="Yes" />
+              <FormControlLabel value="No" control={<Radio />} label="No" />
+            </RadioGroup>
+            {errors.alcohol && <Typography color="error">{errors.alcohol}</Typography>}
+          </FormControl>
+
+          <FormControl>
+            <Typography>Gender</Typography>
+            <RadioGroup
               name="gender"
               value={patientData.gender}
               onChange={handleInputChange}
-              label="Gender"
             >
-              <MenuItem value="Male">Male</MenuItem>
-              <MenuItem value="Female">Female</MenuItem>
-              <MenuItem value="Other">Other</MenuItem>
-            </Select>
+              <FormControlLabel value="Male" control={<Radio />} label="Male" />
+              <FormControlLabel value="Female" control={<Radio />} label="Female" />
+              <FormControlLabel value="Other" control={<Radio />} label="Other" />
+            </RadioGroup>
+            {errors.gender && <Typography color="error">{errors.gender}</Typography>}
           </FormControl>
 
-          {errors.gender && <ErrorHeading errorName={errors.gender}/> }
-
-        </div>
-
-        <div style={{ display: "flex", gap: "5px", marginTop: "15px" }}>
           <TextField
             fullWidth
-            name="contactNumber"
+            name="foodAllergy"
             variant="outlined"
-            placeholder="Enter contact number"
-            value={patientData.contactNumber}
+            label={`Any Food Allergy ( If No then Type "No" )`}
+            value={patientData.foodAllergy}
             onChange={handleInputChange}
+            error={!!errors.foodAllergy}
+            helperText={errors.foodAllergy}
             required
-            error={!!errors.contactNumber}
-            helperText={errors.contactNumber}
-            sx={textFieldStyle}
+          />
+
+          <TextField
+            fullWidth
+            name="jobSpecifications"
+            variant="outlined"
+            label={`Job Specifications ( If No then Type "No" )`}
+            value={patientData.jobSpecifications}
+            onChange={handleInputChange}
+            error={!!errors.jobSpecifications}
+            helperText={errors.jobSpecifications}
+            required
+          />
+
+          <TextField
+            fullWidth
+            name="familyHistory"
+            variant="outlined"
+            label={`Family History of Any LifeStyle Disease ( If No then Type "No" )`}
+            value={patientData.familyHistory}
+            onChange={handleInputChange}
+            error={!!errors.familyHistory}
+            helperText={errors.familyHistory}
+            required
           />
           <TextField
             fullWidth
-            name="email"
+            name="surgery"
             variant="outlined"
-            type="email"
-            placeholder="Enter email"
-            value={patientData.email}
+            label={`Any Surgery ( If No then Type "No" )`}
+            value={patientData.surgery}
             onChange={handleInputChange}
+            error={!!errors.surgery}
+            helperText={errors.surgery}
             required
-            error={!!errors.email}
-            helperText={errors.email}
-            sx={textFieldStyle}
           />
-        </div>
+          <TextField
+            fullWidth
+            name="medications"
+            variant="outlined"
+            label={`Medications ( If No then Type "No" )`}
+            value={patientData.medications}
+            onChange={handleInputChange}
+            error={!!errors.medications}
+            helperText={errors.medications}
+            required
+          />
+          <TextField
+            fullWidth
+            name="supplements"
+            variant="outlined"
+            label={`Supplements ( If No then Type "No" )`}
+            value={patientData.supplements}
+            onChange={handleInputChange}
+            error={!!errors.supplements}
+            helperText={errors.supplements}
+            required
+          />
+          <TextField
+            fullWidth
+            name="eatingPattern"
+            variant="outlined"
+            label={`Your Basic Eating Pattern , Food Habits and Timings`}
+            value={patientData.eatingPattern}
+            multiline
+            onChange={handleInputChange}
+            error={!!errors.eatingPattern}
+            helperText={errors.eatingPattern}
+            required
+          />
 
-        <TextField
-          fullWidth
-          name="emergencyContact"
-          variant="outlined"
-          placeholder="Enter emergency contact"
-          value={patientData.emergencyContact}
-          onChange={handleInputChange}
-          required
-          error={!!errors.emergencyContact}
-          helperText={errors.emergencyContact}
-          sx={textFieldStyle}
-          style={{ marginTop: "15px" }}
-        />
-
-        {/* Medical Conditions Section */}
-        <div style={{ display: "flex", padding: "10px 10px", marginTop: "15px", border: "1px solid hsl(220, 20%, 65%)", borderRadius: "3px", flexDirection: "column", gap: "10px" }}>
-          <div style={{ display: "flex", gap: "15px" }}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Enter medical conditions"
-              value={conditionInput}
-              onChange={(e) => setConditionInput(e.target.value)}
-              sx={textFieldStyle}
-            />
-            <Button variant="contained" color="primary" onClick={() => addChip("medicalConditions", conditionInput)}>
-              Add
-            </Button>
-          </div>
-          <div style={{ display: "flex", overflowY: "auto", maxHeight: "150px", flexWrap: "wrap" }}>
-            {patientData.medicalConditions.map((condition, index) => (
-              <ListItemStyled key={index} sx={{ listStyle: "none" }}>
-                <Chip label={condition} onDelete={handleDelete(condition, "medicalConditions")} />
-              </ListItemStyled>
+          {/* Exercise Regime */}
+          <FormControl>
+            <Typography>Exercise Regime</Typography>
+            {exerciseOptions.map((exercise) => (
+              <FormControlLabel
+                key={exercise}
+                control={
+                  <Checkbox
+                  
+                  checked={patientData.exerciseRegime.includes(exercise)}
+                    value={exercise}
+                    onChange={(e) => handleCheckboxChange(e, "exerciseRegime")}
+                  />
+                }
+                label={exercise}
+              />
             ))}
-          </div>
-        </div>
-        {errors.gender && <ErrorHeading errorName={errors.gender}/> }
-        
-        {/* Allergies Section */}
-        <div style={{ display: "flex", padding: "10px 10px", marginTop: "15px", border: "1px solid hsl(220, 20%, 65%)", borderRadius: "3px", flexDirection: "column", gap: "10px" }}>
-          <div style={{ display: "flex", gap: "15px" }}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Enter allergies"
-              value={allergyInput}
-              onChange={(e) => setAllergyInput(e.target.value)}
-              sx={textFieldStyle}
-            />
-            <Button variant="contained" color="primary" onClick={() => addChip("allergies", allergyInput)}>
-              Add
-            </Button>
-          </div>
-          <div style={{ display: "flex", overflowY: "auto", maxHeight: "150px", flexWrap: "wrap" }}>
-            {patientData.allergies.map((allergy, index) => (
-              <ListItemStyled key={index} sx={{ listStyle: "none" }}>
-                <Chip label={allergy} onDelete={handleDelete(allergy, "allergies")} />
-              </ListItemStyled>
-            ))}
-          </div>
-        </div>
+            {errors.exerciseRegime && <Typography color="error">{errors.exerciseRegime}</Typography>}
+          </FormControl>
 
-        {/* Current Medications Section */}
-        <div style={{ display: "flex", padding: "10px 10px", marginTop: "15px", border: "1px solid hsl(220, 20%, 65%)", borderRadius: "3px", flexDirection: "column", gap: "10px" }}>
-          <div style={{ display: "flex", gap: "15px" }}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Enter current medications"
-              value={medicationInput}
-              onChange={(e) => setMedicationInput(e.target.value)}
-              sx={textFieldStyle}
-            />
-            <Button variant="contained" color="primary" onClick={() => addChip("currentMedications", medicationInput)}>
-              Add
-            </Button>
-          </div>
-          <div style={{ display: "flex", overflowY: "auto", maxHeight: "150px", flexWrap: "wrap" }}>
-            {patientData.currentMedications.map((medication, index) => (
-              <ListItemStyled key={index} sx={{ listStyle: "none" }}>
-                <Chip label={medication} onDelete={handleDelete(medication, "currentMedications")} />
-              </ListItemStyled>
-            ))}
-          </div>
-        </div>
+          {/* Lifestyle */}
+          <FormControl>
+            <Typography>Lifestyle</Typography>
+            <RadioGroup
+              name="lifestyle"
+              value={patientData.lifestyle}
+              onChange={handleInputChange}
+            >
+              <FormControlLabel value="Active" control={<Radio />} label="Active" />
+              <FormControlLabel value="Sedentary" control={<Radio />} label="Sedentary" />
+            </RadioGroup>
 
-        <Button type="submit" variant="contained" color="primary" style={{ marginTop: "20px" }} disabled={loading}>
-          {patientId ? `${loading == true ? "Updating" : "Update"} Patient` : `${loading == true ? "Adding" : "Add"} Patient`}
-        </Button>
+            {errors.lifestyle && <Typography color="error">{errors.lifestyle}</Typography>}
+          </FormControl>
+
+          {/* Physiological Conditions */}
+          <FormControl>
+            <Typography>Physiological Conditions</Typography>
+            {physiologicalOptions.map((condition) => (
+              <FormControlLabel
+                key={condition}
+                control={
+                  <Checkbox
+                  checked={patientData.physiologicalConditions.includes(condition)}
+                    value={condition}
+                    onChange={(e) => handleCheckboxChange(e, "physiologicalConditions")}
+                  />
+                }
+                label={condition}
+              />
+            ))}
+            {patientData.physiologicalConditions.includes("Other") && (
+              <TextField
+                fullWidth
+                name="otherPhysiologicalCondition"
+                variant="outlined"
+                label="Please specify"
+                value={patientData.otherPhysiologicalCondition}
+                onChange={handleInputChange}
+                error={!!errors.otherPhysiologicalCondition}
+                helperText={errors.otherPhysiologicalCondition}
+                required
+              />
+            )}
+
+            {errors.physiologicalConditions && <Typography color="error">{errors.physiologicalConditions}</Typography>}
+
+          </FormControl>
+
+          {/* Submit Button */}
+          <Button type="submit" variant="contained" color="primary" disabled={loading}>
+            {loading == true ? "Updating" : "Update"}
+          </Button>
+        </Stack>
       </form>
 
       <Snackbar
