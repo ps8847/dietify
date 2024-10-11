@@ -11,6 +11,7 @@ import {
   FormControl,
   Snackbar,
   Alert,
+  Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useState, useEffect } from "react";
@@ -41,6 +42,26 @@ const textFieldStyle = {
   "& .MuiInputBase-input": {
     padding: "10px",
   },
+};
+
+const ErrorHeading = ({ errorName }) => {
+  return (
+    <Typography
+      color="hsl(0, 90%, 40%)"
+      sx={{
+        fontSize: "0.75rem",
+        fontWeight: 400,
+        fontFamily: "Roboto",
+        lineHeight: 1.66,
+        textAlign: "left",
+        marginTop: "3px",
+        marginLeft: "14px",
+        marginRight: "14px",
+      }}
+    >
+      {errorName}
+    </Typography>
+  );
 };
 
 // Utility function to capitalize the first letter of each word
@@ -96,6 +117,7 @@ export default function DietPlanFormPage({ dietPlanId, onCloseForm, allAddedCate
   }, [dietPlanId]);
 
   const handleDelete = (chipToDelete) => () => {
+    setErrors({})
     setDietPlanData((prevData) => ({
       ...prevData,
       values: prevData.values.filter((chip) => chip !== chipToDelete),
@@ -103,11 +125,13 @@ export default function DietPlanFormPage({ dietPlanId, onCloseForm, allAddedCate
   };
 
   const handleChipClick = (index, value) => {
+    setErrors({})
     setEditIndex(index);
     setEditValue(value);
   };
 
   const handleEditConfirm = () => {
+    setErrors({})
     const updatedValues = [...dietPlanData.values];
     // Capitalize the edited value before saving
     updatedValues[editIndex] = capitalizeWords(editValue);
@@ -155,6 +179,7 @@ export default function DietPlanFormPage({ dietPlanId, onCloseForm, allAddedCate
   };
 
   const addChip = (inputValue) => {
+    setErrors({})
     if (inputValue) {
       // Capitalize the input value before adding
       setDietPlanData((prevData) => ({
@@ -165,6 +190,8 @@ export default function DietPlanFormPage({ dietPlanId, onCloseForm, allAddedCate
     }
   };
 
+  console.log("dietPlanData is : " , dietPlanData)
+
   const validate = () => {
     const newErrors = {};
     if (!dietPlanData.category) newErrors.category = "Category is required.";
@@ -173,6 +200,9 @@ export default function DietPlanFormPage({ dietPlanId, onCloseForm, allAddedCate
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+  console.log("errors is : " , errors);
+  
 
   return (
     <Box sx={{ width: "100%", mx: "auto", mt: 1 }}>
@@ -200,6 +230,7 @@ export default function DietPlanFormPage({ dietPlanId, onCloseForm, allAddedCate
 
           </Select>
         </FormControl>
+        {errors.category && <ErrorHeading errorName={errors.category}/> }
 
         <Stack direction="row" spacing={2} alignItems="center" sx={{ marginBottom: 2 }}>
           <TextField
@@ -242,6 +273,8 @@ export default function DietPlanFormPage({ dietPlanId, onCloseForm, allAddedCate
             )
           )}
         </Box>
+
+        {errors.values && <ErrorHeading errorName={errors.values}/> }
 
         <Stack direction="row" justifyContent="flex-end" spacing={2}>
           <Button type="submit" variant="contained" color="primary" disabled={loading}>
