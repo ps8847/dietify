@@ -4,6 +4,8 @@ import MainGrid from './Components/MainGrid'
 
 function DietMaster() {
   return (
+
+    // Diet master page and other stuff
     <MainGrid />
   )
 }
