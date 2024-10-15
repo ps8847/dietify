@@ -31,7 +31,7 @@ const ListItemStyled = styled("li")(({ theme }) => ({
 
 export default function PatientAddFormOpen() {
 
-    const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false);
+    const [openDialog, setOpenDialog] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
     const [openSnackbar, setOpenSnackbar] = useState(false); // For Snackbar visibility
     const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -147,24 +147,24 @@ export default function PatientAddFormOpen() {
                 .then((res) => {
                     console.log("reached here : " , res);
                     
-                    // setSnackbarMessage("Data Added successfully!");
-                    // setSnackbarSeverity("success");
-                    // setOpenSnackbar(true); // Show Snackbar on success
+                    setSnackbarMessage("Data Added successfully!");
+                    setSnackbarSeverity("success");
+                    setOpenSnackbar(true); // Show Snackbar on success
+                    // Set a timeout for 2 seconds (2000 ms) before calling setAddPatients(false)
+                     setTimeout(() => {
+                        setOpenDialog(true)
 
-                    // // Set a timeout for 2 seconds (2000 ms) before calling setAddPatients(false)
-                    // setTimeout(() => {
-
-                    // }, 2000); // 2 seconds delay
+                     }, 2000); // 2 seconds delay
                     setLoading(false)
 
                 })
                 .catch((error) => {
                     console.log("error here : " , error);
-
-                    // setSnackbarMessage(error?.response?.data?.message ? error?.response.data.message : "Error submitting form. Please try again.");
-                    // setSnackbarSeverity("error");
-                    // setOpenSnackbar(true); // Show Snackbar on error
-                    // console.error("Error submitting form:", error);
+                    setOpenDialog(false)
+                    setSnackbarMessage(error?.response?.data?.message ? error?.response.data.message : "Error submitting form. Please try again.");
+                    setSnackbarSeverity("error");
+                    setOpenSnackbar(true); // Show Snackbar on error
+                    console.error("Error submitting form:", error);
                     setLoading(false)
                 });
 
@@ -538,14 +538,14 @@ export default function PatientAddFormOpen() {
                 </Snackbar>
 
 
-                <Dialog open={openDeleteDialog}>
+                <Dialog open={openDialog}>
                     <DialogTitle>Data Submitted</DialogTitle>
                     <DialogContent>
                         <Typography color="success">Your Data is Submitted Successfully ! </Typography>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => {
-                            setOpenDeleteDialog(false); setPatientData({
+                            setOpenDialog(false); setPatientData({
                                 name: "",
                                 age: "",
                                 height: "",
