@@ -510,34 +510,6 @@ export default function PatientAddFormOpen() {
                     </Grid>
                 </Grid>
 
-                {/* Snackbar for success message */}
-                <Snackbar
-                    open={openSnackbar}
-                    autoHideDuration={4000}
-                    onClose={handleCloseSnackbar}
-                    anchorOrigin={{ vertical: "top", horizontal: "right" }}
-                >
-                    <Alert
-                        onClose={handleCloseSnackbar}
-                        severity={snackbarSeverity}
-                        sx={{
-                            backgroundColor:
-                                snackbarSeverity === "success" ? "#4caf50" : "#f44336",
-                            color: "#fff",
-                            fontWeight: 600,
-                            "& .MuiAlert-icon": {
-                                color: "#fff", // Set icon color to white
-                            },
-                            "& .MuiAlert-action svg": {
-                                color: "#fff", // Set the close (cross) icon color to white
-                            },
-                        }}
-                    >
-                        {snackbarMessage}
-                    </Alert>
-                </Snackbar>
-
-
                 <Dialog open={openDialog}>
                     <DialogTitle>Data Submitted</DialogTitle>
                     <DialogContent>
@@ -545,29 +517,30 @@ export default function PatientAddFormOpen() {
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => {
-                            setOpenDialog(false); setPatientData({
-                                name: "",
-                                age: "",
-                                height: "",
-                                weight: "",
-                                dietaryPreference: "",
-                                alcohol: "",
-                                foodAllergy: "",
-                                exerciseRegime: [],
-                                lifestyle: "",
-                                jobSpecifications: "",
-                                familyHistory: "",
-                                physiologicalConditions: [],
-                                otherPhysiologicalCondition: "",
-                                surgery: "",
+                           window.location.reload()
+                            // setOpenDialog(false); setPatientData({
+                            //     name: "",
+                            //     age: "",
+                            //     height: "",
+                            //     weight: "",
+                            //     dietaryPreference: "",
+                            //     alcohol: "",
+                            //     foodAllergy: "",
+                            //     exerciseRegime: [],
+                            //     lifestyle: "",
+                            //     jobSpecifications: "",
+                            //     familyHistory: "",
+                            //     physiologicalConditions: [],
+                            //     otherPhysiologicalCondition: "",
+                            //     surgery: "",
 
-                                medications: "",
-                                supplements: "",
-                                eatingPattern: "",
-                                contactNumber: "",
-                                email: "",
-                                address: "",
-                            })
+                            //     medications: "",
+                            //     supplements: "",
+                            //     eatingPattern: "",
+                            //     contactNumber: "",
+                            //     email: "",
+                            //     address: "",
+                            // })
                         }} color="secondary">
                             Submit Another Detail ?
                         </Button>
