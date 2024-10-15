@@ -507,31 +507,9 @@ export default function PatientAddFormOpen() {
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => {
+                            window.scrollTo(0,0)
                            window.location.reload()
-                            // setOpenDialog(false); setPatientData({
-                            //     name: "",
-                            //     age: "",
-                            //     height: "",
-                            //     weight: "",
-                            //     dietaryPreference: "",
-                            //     alcohol: "",
-                            //     foodAllergy: "",
-                            //     exerciseRegime: [],
-                            //     lifestyle: "",
-                            //     jobSpecifications: "",
-                            //     familyHistory: "",
-                            //     physiologicalConditions: [],
-                            //     otherPhysiologicalCondition: "",
-                            //     surgery: "",
-
-                            //     medications: "",
-                            //     supplements: "",
-                            //     eatingPattern: "",
-                            //     contactNumber: "",
-                            //     email: "",
-                            //     address: "",
-                            // })
-                        }} color="secondary">
+                        }}  variant="secondary">
                             Submit Another Detail ?
                         </Button>
                       
