@@ -507,8 +507,10 @@ export default function PatientAddFormOpen() {
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => {
-                            window.scrollTo({ top: 0, behavior: 'smooth' })
-                           window.location.reload()
+                         window.scrollTo({ top: 0, behavior: 'smooth' });
+                         setTimeout(() => {
+                             window.location.reload();
+                         }, 2000); // Adjust the time to match the scroll duration
                         }}  variant="secondary">
                             Submit Another Detail ?
                         </Button>
