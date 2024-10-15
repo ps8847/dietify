@@ -46,7 +46,7 @@ export default function PatientAddFormOpen() {
         weight: "",
         dietaryPreference: "",
         alcohol: "",
-        gender:"",
+        gender: "",
         foodAllergy: "",
         exerciseRegime: [],
         lifestyle: "",
@@ -145,21 +145,21 @@ export default function PatientAddFormOpen() {
 
             axios[method](url, patientData)
                 .then((res) => {
-                    console.log("reached here : " , res);
-                    
+                    console.log("reached here : ", res);
+
                     setSnackbarMessage("Data Added successfully!");
                     setSnackbarSeverity("success");
                     setOpenSnackbar(true); // Show Snackbar on success
                     // Set a timeout for 2 seconds (2000 ms) before calling setAddPatients(false)
-                 
-                        setOpenDialog(true)
 
-                
+                    setOpenDialog(true)
+
+
                     setLoading(false)
 
                 })
                 .catch((error) => {
-                    console.log("error here : " , error);
+                    console.log("error here : ", error);
                     setOpenDialog(false)
                     setSnackbarMessage(error?.response?.data?.message ? error?.response.data.message : "Error submitting form. Please try again.");
                     setSnackbarSeverity("error");
@@ -241,7 +241,7 @@ export default function PatientAddFormOpen() {
                                         required
                                     />
 
-                                   
+
 
                                     {/* Age, Height, Weight */}
                                     <Stack direction="row" spacing={2}>
@@ -336,9 +336,9 @@ export default function PatientAddFormOpen() {
                                             value={patientData.gender}
                                             onChange={handleInputChange}
                                         >
-                                           <FormControlLabel value="Male" control={<Radio />} label="Male" />
-              <FormControlLabel value="Female" control={<Radio />} label="Female" />
-              <FormControlLabel value="Other" control={<Radio />} label="Other" />
+                                            <FormControlLabel value="Male" control={<Radio />} label="Male" />
+                                            <FormControlLabel value="Female" control={<Radio />} label="Female" />
+                                            <FormControlLabel value="Other" control={<Radio />} label="Other" />
                                         </RadioGroup>
                                         {errors.gender && <Typography color="error">{errors.gender}</Typography>}
                                     </FormControl>
@@ -492,13 +492,40 @@ export default function PatientAddFormOpen() {
 
                                     {/* Submit Button */}
                                     <Button type="submit" variant="contained" color="primary" disabled={loading}>
-                                    {loading == true ? "Submitting" : "Submit"}
+                                        {loading == true ? "Submitting" : "Submit"}
                                     </Button>
                                 </Stack>
                             </form>
                         </Box>
                     </Grid>
                 </Grid>
+
+                {/* Snackbar for success message */}
+                <Snackbar
+                    open={openSnackbar}
+                    autoHideDuration={4000}
+                    onClose={handleCloseSnackbar}
+                    anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                >
+                    <Alert
+                        onClose={handleCloseSnackbar}
+                        severity={snackbarSeverity}
+                        sx={{
+                            backgroundColor:
+                                snackbarSeverity === "success" ? "#4caf50" : "#f44336",
+                            color: "#fff",
+                            fontWeight: 600,
+                            "& .MuiAlert-icon": {
+                                color: "#fff", // Set icon color to white
+                            },
+                            "& .MuiAlert-action svg": {
+                                color: "#fff", // Set the close (cross) icon color to white
+                            },
+                        }}
+                    >
+                        {snackbarMessage}
+                    </Alert>
+                </Snackbar>
 
                 <Dialog open={openDialog}>
                     <DialogTitle>Data Submitted</DialogTitle>
@@ -507,14 +534,14 @@ export default function PatientAddFormOpen() {
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => {
-                         window.scrollTo({ top: 0, behavior: 'smooth' });
-                         setTimeout(() => {
-                             window.location.reload();
-                         }, 2000); // Adjust the time to match the scroll duration
-                        }}  variant="secondary">
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 2000); // Adjust the time to match the scroll duration
+                        }} variant="secondary">
                             Submit Another Detail ?
                         </Button>
-                      
+
 
                     </DialogActions>
                 </Dialog>
