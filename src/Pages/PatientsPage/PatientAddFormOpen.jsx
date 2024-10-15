@@ -241,17 +241,7 @@ export default function PatientAddFormOpen() {
                                         required
                                     />
 
-                                    <TextField
-                                        fullWidth
-                                        name="foodAllergy"
-                                        variant="outlined"
-                                        label={`Any Food Allergy ( Type "No" if have No Allergy Currently )`}
-                                        value={patientData.foodAllergy}
-                                        onChange={handleInputChange}
-                                        error={!!errors.foodAllergy}
-                                        helperText={errors.foodAllergy}
-                                        required
-                                    />
+                                   
 
                                     {/* Age, Height, Weight */}
                                     <Stack direction="row" spacing={2}>
