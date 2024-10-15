@@ -507,7 +507,7 @@ export default function PatientAddFormOpen() {
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => {
-                            window.scrollTo(0,0)
+                            window.scrollTo({ top: 0, behavior: 'smooth' })
                            window.location.reload()
                         }}  variant="secondary">
                             Submit Another Detail ?
