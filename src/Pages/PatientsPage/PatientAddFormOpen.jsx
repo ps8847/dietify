@@ -151,10 +151,10 @@ export default function PatientAddFormOpen() {
                     setSnackbarSeverity("success");
                     setOpenSnackbar(true); // Show Snackbar on success
                     // Set a timeout for 2 seconds (2000 ms) before calling setAddPatients(false)
-                     setTimeout(() => {
+                 
                         setOpenDialog(true)
 
-                     }, 2000); // 2 seconds delay
+                
                     setLoading(false)
 
                 })
@@ -568,7 +568,7 @@ export default function PatientAddFormOpen() {
                                 email: "",
                                 address: "",
                             })
-                        }} color="primary">
+                        }} color="secondary">
                             Submit Another Detail ?
                         </Button>
                       
