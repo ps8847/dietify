@@ -1,6 +1,20 @@
 import * as React from "react";
 import { styled } from "@mui/material/styles";
-import { Button, Box, Typography, Chip, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress } from "@mui/material";
+import {
+  Button,
+  Box,
+  Typography,
+  Chip,
+  Snackbar,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CircularProgress,
+  Card,
+  CardContent,
+} from "@mui/material";
 
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -12,31 +26,30 @@ import PaymentFormPage from "../Payment-Form";
 import axios from "axios";
 import { MAIN_URL } from "../../../Configs/Urls";
 
-const getFormattedDate = (date) => {
-
-  if(date){
-    const today = new Date(date);
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
-    const dd = String(today.getDate()).padStart(2, '0');
-    return `${dd}-${mm}-${yyyy}`;
-    
-  } else {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
-    const dd = String(today.getDate()).padStart(2, '0');
-    return `${dd}-${mm}-${yyyy}`;
-
-  }
+const calculateTotal = (payments, startDate, endDate) => {
+  return payments
+    .filter((payment) => {
+      const paymentDate = new Date(payment.paymentDate);
+      return paymentDate >= startDate && paymentDate <= endDate;
+    })
+    .reduce((total, payment) => total + +payment.amount, 0);
 };
 
+const formatDate = (dateString) => {
+  const today = new Date(dateString);
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0"); // Months are zero-indexed
+  const dd = String(today.getDate()).padStart(2, "0");
+  return `${dd}-${mm}-${yyyy}`;
+  // const options = { year: "numeric", month: "2-digit", day: "2-digit" };
+  // return  new Date(dateString).toLocaleDateString("en-GB", options); // e.g., 03-10-2024
+};
 
 export default function MainGrid() {
-  const [addPayments, setAddPayments] = React.useState(false);
   const [Payments, setPayments] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
+  const [totals, setTotals] = React.useState({ today: 0, week: 0, month: 0 });
 
   const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false);
   const [Deleteloading, setDeleteLoading] = React.useState(false);
@@ -49,7 +62,18 @@ export default function MainGrid() {
     try {
       setLoading(true); // Start loading
       const response = await axios.get(`${MAIN_URL}payments`);
-      setPayments(response.data.sort((a, b) => b.id - a.id));
+
+      // Sort payments by paymentDate in descending order and format the paymentDate
+      const paymentsWithFormattedDates = response.data
+        .map((payment) => ({
+          ...payment,
+          formattedDate: formatDate(payment.paymentDate), // Add formattedDate field
+        }))
+        .sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate));
+
+      // const sortedPayments = response.data.sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate));
+
+      setPayments(paymentsWithFormattedDates); // Set sorted payments
     } catch (error) {
       console.error("Error fetching payments:", error);
       setError("Failed to fetch payments. Please try again.");
@@ -61,14 +85,13 @@ export default function MainGrid() {
   // Fetch patients on component mount
   React.useEffect(() => {
     fetchPayments();
-  }, [addPayments]);
+  }, []);
 
   let [PaymentId, setPaymentId] = React.useState(null);
 
   const handleEdit = (row) => {
     console.log("Edit row:", row);
     setPaymentId(row.id);
-    setAddPayments(true);
   };
 
   const handleDelete = (row) => {
@@ -108,8 +131,30 @@ export default function MainGrid() {
 
   const onCloseForm = () => {
     setPaymentId(null);
-    setAddPayments(false);
+    fetchPayments();
   };
+
+  // Calculate totals when payments data changes
+  React.useEffect(() => {
+    if (Payments.length > 0) {
+      const today = new Date();
+      const startOfToday = new Date(today.setHours(0, 0, 0, 0));
+      const startOfWeek = new Date(
+        today.setDate(today.getDate() - today.getDay())
+      );
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+      const totalToday = calculateTotal(Payments, startOfToday, new Date());
+      const totalThisWeek = calculateTotal(Payments, startOfWeek, new Date());
+      const totalThisMonth = calculateTotal(Payments, startOfMonth, new Date());
+
+      setTotals({
+        today: totalToday,
+        week: totalThisWeek,
+        month: totalThisMonth,
+      });
+    }
+  }, [Payments]);
 
   const columns = [
     {
@@ -134,9 +179,9 @@ export default function MainGrid() {
     },
     {
       field: "payerName",
-      headerName: "Payer Name",
-      flex: 1.5,
-      minWidth: 150,
+      headerName: "Patient's Name",
+      flex: 1,
+      minWidth: 100,
       renderCell: (params) => (
         <div
           style={{
@@ -169,7 +214,7 @@ export default function MainGrid() {
       ),
     },
     {
-      field: "paymentDate",
+      field: "formattedDate",
       headerName: "Payment Date",
       flex: 1.5,
       minWidth: 150,
@@ -182,7 +227,8 @@ export default function MainGrid() {
             height: "100%",
           }}
         >
-          {getFormattedDate(params.value)}
+          {/* {getFormattedDate(params.value)} */}
+         {params.value}
         </div>
       ),
     },
@@ -276,18 +322,72 @@ export default function MainGrid() {
     <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" } }}>
       {/* Add Patient Button */}
 
-      <Button
-        variant="contained"
-        color="primary"
-        sx={{ mb: 2 }}
-        onClick={() => {setAddPayments(!addPayments); setPaymentId(null)}}
-      >
-        {addPayments == false ? "Add Payment" : "View All Payments"}
-      </Button>
+      {PaymentId !== null && openDeleteDialog == false && (
+        <Button
+          variant="contained"
+          color="primary"
+          sx={{ mb: 2 }}
+          onClick={() => {
+            setPaymentId(null);
+          }}
+        >
+          View All Payments
+        </Button>
+      )}
+
+      {PaymentId === null && (
+        <Grid container spacing={3}>
+          {/* Today Card */}
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" component="div">
+                  Today's Total Payments
+                </Typography>
+                <Typography variant="h4" component="div" color="primary">
+                  Rs. {totals.today}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* This Week Card */}
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" component="div">
+                  This Week's Total Payments
+                </Typography>
+                <Typography variant="h4" component="div" color="secondary">
+                  Rs. {totals.week}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* This Month Card */}
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" component="div">
+                  This Month's Total Payments
+                </Typography>
+                <Typography variant="h4" component="div" color="success">
+                  Rs. {totals.month}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
 
       {/* Patients List */}
-      <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-        {addPayments ? (PaymentId !== null ? `Update Payment of Id " ${Payments.filter(item => item.id == PaymentId)[0].id} "` : "Add New Payment") : "Payment List"}
+      <Typography component="h2" variant="h6" sx={{ mb: 2, mt: 2 }}>
+        {PaymentId !== null
+          ? `Update Payment of Id " ${
+              Payments.filter((item) => item.id == PaymentId)[0].id
+            } "`
+          : "Payment List"}
       </Typography>
 
       {loading && (
@@ -317,8 +417,11 @@ export default function MainGrid() {
       {!loading && !error && Payments.length > 0 ? (
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            {addPayments ? (
-              <PaymentFormPage paymentId={PaymentId} onCloseForm={onCloseForm} />
+            {PaymentId !== null && openDeleteDialog == false ? (
+              <PaymentFormPage
+                paymentId={PaymentId}
+                onCloseForm={onCloseForm}
+              />
             ) : (
               <CustomizedDataGrid rows={Payments} columns={columns} />
             )}
@@ -334,21 +437,37 @@ export default function MainGrid() {
         </Typography>
       ) : null}
 
-       {/* Delete Confirmation Dialog */}
-       <Dialog open={openDeleteDialog} onClose={() => {setOpenDeleteDialog(false); setPaymentId(null)}}>
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={openDeleteDialog}
+        onClose={() => {
+          setOpenDeleteDialog(false);
+          setPaymentId(null);
+        }}
+      >
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
           <Typography>Are you sure you want to delete this patient?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => {setOpenDeleteDialog(false); setPaymentId(null)}} color="primary">
+          <Button
+            onClick={() => {
+              setOpenDeleteDialog(false);
+              setPaymentId(null);
+            }}
+            color="primary"
+          >
             Cancel
           </Button>
-          <Button onClick={confirmDelete} disabled={Deleteloading}  variant="contained"
+          <Button
+            onClick={confirmDelete}
+            disabled={Deleteloading}
+            variant="contained"
             color="danger"
             size="small"
-            sx={{background:"hsl(0, 90%, 40%)" , color:'white'}}>
-           {Deleteloading ? "Deleting ..." : "Delete"}
+            sx={{ background: "hsl(0, 90%, 40%)", color: "white" }}
+          >
+            {Deleteloading ? "Deleting ..." : "Delete"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -378,7 +497,6 @@ export default function MainGrid() {
           {snackbarMessage}
         </Alert>
       </Snackbar>
-
     </Box>
   );
 }

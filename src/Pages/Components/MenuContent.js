@@ -25,7 +25,7 @@ const IconWrapper = styled('div')(({ open }) => ({
 const mainListItems = [
   { text: 'Patients', icon: <PeopleRoundedIcon />, route: '/' },
   { text: 'Diet Master', icon: <AssignmentIcon />, route: '/diet-master' },
-  { text: 'Patient Diet', icon: <MonitorHeartIcon />, route: '/patient-diet' },
+  { text: 'Diet Plans', icon: <MonitorHeartIcon />, route: '/patient-diet' },
   { text: 'Payments', icon: <SavingsIcon />, route: '/payments' },
 ];
 

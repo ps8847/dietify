@@ -80,11 +80,11 @@ const getFormattedDate = (date) => {
   }
 };
 
-export default function PaymentFormPage({paymentId,onCloseForm}) {
+export default function PaymentFormPage({patientId , paymentId , onCloseForm}) {
 
   const [PaymentData, setPaymentData] = useState({
-    payerName: "",
-    amount: 1,
+    PatientId : patientId,
+    amount: '',
     paymentDate: getFormattedDate(null),
     paymentType: "",
     purpose: ""
@@ -94,7 +94,6 @@ export default function PaymentFormPage({paymentId,onCloseForm}) {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // For Snackbar severity
   const [errors, setErrors] = useState({});
-console.log("errors is : " , errors);
 
   const [loading  ,  setLoading] = useState(false)
 
@@ -131,7 +130,6 @@ response.data.paymentDate = getFormattedDate(response.data.paymentDate)
   const validate = () => {
     const newErrors = {};
 
-    if (!PaymentData.payerName) newErrors.payerName = "PayerName is required.";
     if (!PaymentData.amount || PaymentData.amount < 1)
       newErrors.amount = "Amount must be a positive number.";
    
@@ -189,8 +187,6 @@ response.data.paymentDate = getFormattedDate(response.data.paymentDate)
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
   };
-
-
 
   return (
     <Box sx={{ width: "100%", mx: "auto", mt: 1 }}>
@@ -254,19 +250,6 @@ response.data.paymentDate = getFormattedDate(response.data.paymentDate)
           variant="outlined"
           placeholder="Enter the purpose or any comments"
           value={PaymentData.purpose}
-          onChange={handleInputChange}
-          sx={{ marginTop: "15px", ...textFieldStyle }}
-        />
-
-        {/* Payment name*/}
-        <TextField
-          fullWidth
-          error={!!errors.payerName}
-          helperText={errors.payerName}
-          name="payerName"
-          variant="outlined"
-          placeholder="Enter the Payer's Name"
-          value={PaymentData.payerName}
           onChange={handleInputChange}
           sx={{ marginTop: "15px", ...textFieldStyle }}
         />
