@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import { MAIN_URL } from '../../Configs/Urls';
+import dayjs from "dayjs";
 
 const categories = [
   "Early Morning",
@@ -26,15 +27,37 @@ const categories = [
   "All Day",
 ];
 
+
+const generateWeeklyRanges = () => {
+  const weeks = [];
+  const today = dayjs(); // Current date using dayjs
+  const startOfWeek = today.startOf('week').add(1, 'day'); // Adjust to Monday
+  const oneYearFromToday = today.add(1, 'year');
+
+  let currentStartOfWeek = startOfWeek;
+
+  while (currentStartOfWeek.isBefore(oneYearFromToday)) {
+    const startDate = currentStartOfWeek.format("DD-MM-YYYY");
+    const endDate = currentStartOfWeek.add(6, 'days').format("DD-MM-YYYY");
+    weeks.push({ date1: startDate, date2: endDate });
+    currentStartOfWeek = currentStartOfWeek.add(7, 'days'); // Move to the next week
+  }
+
+  return weeks;
+};
+
+
 const categoryOrder = categories.reduce((acc, category, index) => {
   acc[category] = index;
   return acc;
 }, {});
 
 
-const PatientDietForm = ({ patientId, onCloseForm }) => {
-  const [isForAdd, setisForAdd] = useState(true);
-  const [planId, setPlanId] = useState(null);
+const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selectedWeekdefault , onCloseForm, showPatientInfo }) => {
+
+  // console.log("name, patientId , planId, selectedPlansWeeks , selectedWeekdefault , onCloseForm, showPatientInfo  is : " , name, patientId , planId, selectedPlansWeeks , selectedWeekdefault , onCloseForm, showPatientInfo );
+  
+
   const [FetchedPatientData, setFetchedPatientData] = useState(null);
   const [FetchedDietPlan, setFetchedDietPlans] = useState(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -43,9 +66,8 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
   const [loading, setLoading] = useState(false);
   const [selectedDay, setSelectedDay] = useState("Sunday");
 
-  console.log("FetchedPatientData is : " , FetchedPatientData);
-  console.log("FetchedDietPlan is : " , FetchedDietPlan);
-  
+  console.log("FetchedDietPlan is : ", FetchedDietPlan);
+
   const [mainDietPlans, setmainDietPlans] = useState({
     Sunday: {},
     Monday: {},
@@ -61,21 +83,12 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
     setOpenSnackbar(false);
   };
 
-  let fetchPatientData = async () => {
-    await axios
-      .get(`${MAIN_URL}patients/${patientId}`)
-      .then((response) => {
-        setFetchedPatientData(response.data);
-        if (response.data.hasPlan == true) {
-          setisForAdd(false);
-          setPlanId(response.data.planId);
-        }
-      })
-      .catch((error) => {
-        setSnackbarMessage("Error fetching patient data.");
-        setSnackbarSeverity("error");
-        setOpenSnackbar(true);
-      });
+
+  const [selectedWeek, setSelectedWeek] = useState(selectedWeekdefault || "");
+  const weeklyRanges = generateWeeklyRanges();
+
+  const handleWeekChange = (event) => {
+    setSelectedWeek(event.target.value);
   };
 
   const fetchDietPlans = async () => {
@@ -84,9 +97,9 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
       const response = await axios.get(`${MAIN_URL}dietplans`);
 
       // Sort diet plans based on the category order
-     const sortedDietPlans = response.data.sort((a, b) => {
-      return categoryOrder[a.category] - categoryOrder[b.category];
-    });
+      const sortedDietPlans = response.data.sort((a, b) => {
+        return categoryOrder[a.category] - categoryOrder[b.category];
+      });
 
       setFetchedDietPlans(sortedDietPlans);
     } catch (error) {
@@ -100,7 +113,6 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
 
   useEffect(() => {
     if (patientId) {
-      fetchPatientData();
       fetchDietPlans();
     }
   }, [patientId]);
@@ -109,6 +121,9 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
     await axios
       .get(`${MAIN_URL}patientdietplans/${planId}`)
       .then((response) => {
+
+        console.log("the response is ");
+        
         setmainDietPlans((prev) => ({
           ...prev,
           ...response.data.DietPlan.DietPlan,
@@ -126,13 +141,13 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
   };
 
   useEffect(() => {
-    if (isForAdd == false) {
+    if (planId) {
       fetchPatientDietData();
     }
-  }, [isForAdd]);
+  }, [planId]);
 
   const handlePlanChange = (category, labels) => {
-    
+
     const uniqueLabels = Array.from(
       new Set(labels)
     )
@@ -151,6 +166,14 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
       Object.values(dayPlan).every(categoryValues => categoryValues.length === 0)
     );
 
+    if(selectedWeek == ""){
+      setSnackbarMessage("Please Select the week for The Diet Plan");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+      setLoading(false);
+      return;
+    }
+
     if (allDaysEmpty) {
       setSnackbarMessage("Select at least one Diet Rule for the Patient");
       setSnackbarSeverity("error");
@@ -162,8 +185,12 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
     setmainDietPlans(currentSelections);
 
     let mainRequestStruc = {
+      patientName : name,
       patientId,
       DietPlan: currentSelections,
+      weekDateStart : selectedWeek.split(" - ")[0],
+      weekDateEnd : selectedWeek.split(" - ")[1],
+
     };
 
     const method = planId ? "put" : "post";
@@ -200,18 +227,60 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
 
   return (
     <Paper style={{ padding: 20, backgroundColor: '#f5f8fa' }}>
-      <Paper style={{ padding: '16px', marginBottom: '20px' }}>
-        <Typography variant="h5" gutterBottom>Patient Information</Typography>
-        <Typography>Name: {FetchedPatientData?.name}</Typography>
-        <Typography>Age: {FetchedPatientData?.age}</Typography>
-        <Typography>Gender: {FetchedPatientData?.gender}</Typography>
-        <Typography>Contact: {FetchedPatientData?.contactNumber}</Typography>
-        <Typography>Email: {FetchedPatientData?.email}</Typography>
-      </Paper>
+
+      {
+        showPatientInfo == true &&
+        <Paper style={{ padding: '16px', marginBottom: '20px' }}>
+          <Typography variant="h5" gutterBottom>Patient Information</Typography>
+          <Typography>Name: {FetchedPatientData?.name}</Typography>
+          <Typography>Age: {FetchedPatientData?.age}</Typography>
+          <Typography>Gender: {FetchedPatientData?.gender}</Typography>
+          <Typography>Contact: {FetchedPatientData?.contactNumber}</Typography>
+          <Typography>Email: {FetchedPatientData?.email}</Typography>
+        </Paper>
+      }
+
+      <Box display="flex" flexDirection="column">
+
+        {
+          planId == null &&
+        <FormControl fullWidth variant="outlined" sx={{ maxWidth: 400, marginBottom: 2 }}>
+          <InputLabel id="weekly-range-label">Select Week</InputLabel>
+          <Select
+            labelId="weekly-range-label"
+            value={selectedWeek}
+            onChange={handleWeekChange}
+
+            label="Select Week"
+            sx={{
+              background: "#fff",
+              borderRadius: "8px",
+              '& .MuiSelect-select': {
+                padding: "10px",
+              },
+            }}
+          >
+            {weeklyRanges.map((week, index) => (
+              <MenuItem disabled={selectedPlansWeeks?.includes(`${week.date1} - ${week.date2}`)} key={index} value={`${week.date1} - ${week.date2}`}>
+                <Typography variant="body2" color="textPrimary">
+                  {`${week.date1} - ${week.date2}`}
+                </Typography>
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        }
+
+        {selectedWeek && (
+          <Typography variant="h6" mt={2} mb={2}>
+            Selected Week: {selectedWeek}
+          </Typography>
+        )}
+      </Box>
 
       <Box display="flex">
         <Box display="flex" flexDirection="column" marginRight={2} alignItems={'center'} justifyContent={'center'}>
-          {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((day) => (
+          {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday","Sunday"].map((day) => (
             <Box
               key={day}
               onClick={() => handleDaySelect(day)}
@@ -223,6 +292,8 @@ const PatientDietForm = ({ patientId, onCloseForm }) => {
                 justifyContent: "center",
                 margin: "2px 0",
                 borderRadius: "4px",
+                paddingLeft: '10px',
+                paddingRight: '10px',
                 cursor: "pointer",
                 backgroundColor: selectedDay === day ? 'lightblue' : 'transparent',
                 '&:hover': { backgroundColor: '#e0e0e0' },

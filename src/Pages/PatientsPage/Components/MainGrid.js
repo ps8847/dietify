@@ -62,6 +62,8 @@ export default function MainGrid() {
   };
 
   let [PatientId, setPatientId] = React.useState(null);
+  let [PatientName, setPatientName] = React.useState(null);
+  let [PatientContact, setPatientContact] = React.useState(null);
 
   // Fetch patients on component mount
   React.useEffect(() => {
@@ -70,6 +72,8 @@ export default function MainGrid() {
 
   const handleEdit = (row) => {
     setPatientId(row.id);
+    setPatientName(row.name);
+    setPatientContact(row.contactNumber);
     setopenEdit(true);
     setAddPatients(true);
   };
@@ -80,11 +84,15 @@ export default function MainGrid() {
   };
   const handlePayment = (row) => {
     setPatientId(row.id);
+    setPatientName(row.name);
+    setPatientContact(row.contactNumber);
     setopenPayment(true);
     setAddPatients(true);
   };
   const handleDietPlans = (row) => {
     setPatientId(row.id);
+    setPatientName(row.name);
+    setPatientContact(row.contactNumber);
     setopenDietPlans(true);
     setAddPatients(true);
   };
@@ -131,6 +139,8 @@ export default function MainGrid() {
     setopenView(false)
     setopenPayment(false)
     setopenDietPlans(false)
+    setPatientName(null);
+    setPatientContact(null);
   };
 
   const columns = [
@@ -397,9 +407,9 @@ export default function MainGrid() {
             ) : openView == true && PatientId !== null ? (
               <PatientView PatientId={PatientId} onCloseForm={onCloseForm} />
             ) : openPayment == true && PatientId !== null ? (
-              <PaymentView PatientId={PatientId} onCloseForm={onCloseForm} />
+              <PaymentView PatientId={PatientId} onCloseForm={onCloseForm} Name={PatientName} ContactNumber={PatientContact} />
             ) : openDietPlans == true && PatientId !== null ? (
-              <PatientDietPlan PatientId={PatientId} onCloseForm={onCloseForm} />
+              <PatientDietPlan PatientId={PatientId} onCloseForm={onCloseForm} Name={PatientName} ContactNumber={PatientContact}/>
             ) : (
               <CustomizedDataGrid rows={patients} columns={columns} />
             )}

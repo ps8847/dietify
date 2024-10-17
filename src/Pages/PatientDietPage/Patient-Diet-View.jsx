@@ -19,7 +19,7 @@ import axios from 'axios';
 import { MAIN_URL } from '../../Configs/Urls';
 
 // Ordered days of the week and meal categories
-const orderedDaysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const orderedDaysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' , 'Sunday'];
 
 const categories = [
   "Early Morning",
@@ -36,7 +36,7 @@ const categoryOrder = categories.reduce((acc, category, index) => {
   return acc;
 }, {});
 
-function PatientDietView({ planId, onCloseForm }) {
+function PatientDietView({ planId, onCloseForm , showPatientInfo , selectedWeekdefault}) {
 
   const [patientData, setPatietnData] = useState(null);
   const [DietPlan, setDietPlan] = useState(null);
@@ -66,14 +66,7 @@ function PatientDietView({ planId, onCloseForm }) {
         });
 
         console.log("CategorisedCategories is : ", CategorisedCategories);
-
-
         setOrderedCategories(CategorisedCategories)
-
-        // setmainDietPlans((prev) => ({
-        //   ...prev,  // Spread the previous state
-        //   ...response.data.DietPlan.DietPlan,  // Spread the fetched diet plan data, which should overwrite the relevant days
-        // }));
 
       })
       .catch((error) => {
@@ -105,7 +98,8 @@ function PatientDietView({ planId, onCloseForm }) {
 
     const today = new Date();
     const dateString = today.toLocaleDateString();
-    doc.text(`Date: ${dateString}`, 14, 40);
+    doc.text(`Date of Download: ${dateString}`, 14, 40);
+    doc.text(`Week: ${selectedWeekdefault}`, 14, 45);
 
     const tableColumn = ['Day', 'Category', 'Items'];
     const tableRows = [];
@@ -151,6 +145,9 @@ function PatientDietView({ planId, onCloseForm }) {
 
   return (
     <div style={{ padding: '20px' }}>
+
+      {
+        showPatientInfo == true &&
       <Paper style={{ padding: '16px', marginBottom: '20px' }}>
         <Typography variant="h5" gutterBottom>
           Patient Information
@@ -161,6 +158,11 @@ function PatientDietView({ planId, onCloseForm }) {
         <Typography>Contact: {patientData?.contactNumber}</Typography>
         <Typography>Email: {patientData?.email}</Typography>
       </Paper>
+      }
+
+<Typography variant="h6" mt={2} mb={2}>
+            For The Week: {selectedWeekdefault}
+          </Typography>
 
       <Button variant="contained" color="primary" onClick={downloadPDF} style={{ marginBottom: '20px' }}>
         Download as PDF

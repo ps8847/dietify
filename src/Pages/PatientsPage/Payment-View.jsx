@@ -33,7 +33,6 @@ const getFormattedDate = (date) => {
   }
 };
 
-
 const formatDate = (dateString) => {
   const today = new Date(dateString);
   const yyyy = today.getFullYear();
@@ -44,11 +43,9 @@ const formatDate = (dateString) => {
   // return  new Date(dateString).toLocaleDateString("en-GB", options); // e.g., 03-10-2024
 };
 
+function PaymentView({ PatientId , Name  , ContactNumber}) {
 
-function PaymentView({ PatientId }) {
-
-  const [FetchedPatientData, setFetchedPatientData] = useState(null);
-  const [FetchedPaymentsData, setFetchedPaymentsData] = useState(null);
+  const [FetchedPaymentsData, setFetchedPaymentsData] = useState([]);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
@@ -66,18 +63,6 @@ function PaymentView({ PatientId }) {
     setOpenSnackbar(false);
   };
 
-  let fetchPatientData = async () => {
-    await axios
-      .get(`${MAIN_URL}patients/${PatientId}`)
-      .then((response) => {
-        setFetchedPatientData(response.data);
-      })
-      .catch((error) => {
-        setSnackbarMessage("Error fetching patient data.");
-        setSnackbarSeverity("error");
-        setOpenSnackbar(true);
-      });
-  };
 
   let fetchPaymentsData = async () => {
     await axios
@@ -91,21 +76,20 @@ function PaymentView({ PatientId }) {
         formattedDate: formatDate(payment.paymentDate), // Add formattedDate field
       }))
 
-    setFetchedPaymentsData(paymentsWithFormattedDates); // Set sorted payments
+    setFetchedPaymentsData(paymentsWithFormattedDates == null ? [] : paymentsWithFormattedDates); // Set sorted payments
 
         setLoading(false)
       })
       .catch((error) => {
-        setSnackbarMessage("Error fetching patient data.");
-        setSnackbarSeverity("error");
-        setOpenSnackbar(true);
+        // setSnackbarMessage("Error fetching patient data.");
+        // setSnackbarSeverity("error");
+        // setOpenSnackbar(true);
         setLoading(false)
       });
   };
 
   useEffect(() => {
     if (PatientId) {
-      fetchPatientData();
       fetchPaymentsData()
     }
   }, [PatientId]);
@@ -302,6 +286,7 @@ function PaymentView({ PatientId }) {
     },
   ];
 
+console.log("FetchedPaymentsData is :" , FetchedPaymentsData);
 
 
   return (
@@ -314,8 +299,7 @@ function PaymentView({ PatientId }) {
         <Typography variant="h5" gutterBottom style={{ color: '#00796b' }}>
           Patient Information
         </Typography>
-        {
-          FetchedPatientData &&
+        
           <Stack direction="row" spacing={1}>
             {/* Name and Contact */}
             <Grid container spacing={2} alignItems="center">
@@ -323,7 +307,7 @@ function PaymentView({ PatientId }) {
                 <PersonIcon style={{ color: '#00796b' }} />
               </Grid>
               <Grid item>
-                <Typography><strong>Name:</strong> {FetchedPatientData?.name}</Typography>
+                <Typography><strong>Name:</strong> {Name}</Typography>
               </Grid>
             </Grid>
             <Grid container spacing={2} alignItems="center">
@@ -331,13 +315,13 @@ function PaymentView({ PatientId }) {
                 <LocalPhoneIcon style={{ color: '#00796b' }} />
               </Grid>
               <Grid item>
-                <Typography><strong>Contact Number:</strong> {FetchedPatientData?.contactNumber}</Typography>
+                <Typography><strong>Contact Number:</strong> {ContactNumber}</Typography>
               </Grid>
             </Grid>
 
 
           </Stack>
-        }
+      
 
       </Paper>
 
@@ -387,25 +371,26 @@ function PaymentView({ PatientId }) {
       )}
 
       {/* Payment Data */}
-      {!loading && !error && FetchedPaymentsData.length > 0 ? (
+    
+ 
         <Grid container spacing={2}>
           <Grid item xs={12}>
             {addPayments ? (
               <PaymentFormPage patientId={PatientId} paymentId={PaymentId} onCloseForm={onCloseForm} />
-            ) : (
-              <CustomizedDataGrid rows={FetchedPaymentsData} columns={columns} />
-            )}
+            ) : 
+              FetchedPaymentsData?.length > 0 && <CustomizedDataGrid rows={FetchedPaymentsData} columns={columns} /> }
+            
           </Grid>
         </Grid>
-      ) : !loading && !error && FetchedPaymentsData.length === 0 ? (
-        <Typography
+     
+        {FetchedPaymentsData?.length === 0 && <Typography
           component="h2"
           variant="h6"
           sx={{ mb: 2, textAlign: "center", color: "gray" }}
         >
           No Payments Data Found for this Patient
-        </Typography>
-      ) : null}
+        </Typography>}
+     
 
        {/* Delete Confirmation Dialog */}
        <Dialog open={openDeleteDialog} onClose={() => {setOpenDeleteDialog(false); setPaymentId(null)}}>
