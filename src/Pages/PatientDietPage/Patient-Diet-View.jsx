@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import {
   Table,
@@ -37,6 +38,10 @@ const categoryOrder = categories.reduce((acc, category, index) => {
 }, {});
 
 function PatientDietView({ planId, onCloseForm , showPatientInfo , selectedWeekdefault}) {
+
+
+  console.log("planId, onCloseForm , showPatientInfo , selectedWeekdefault is : " , planId, onCloseForm , showPatientInfo , selectedWeekdefault);
+  
 
   const [patientData, setPatietnData] = useState(null);
   const [DietPlan, setDietPlan] = useState(null);

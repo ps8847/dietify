@@ -133,6 +133,8 @@ function PatientDietPlan({ PatientId, Name, ContactNumber }) {
     setUpdatePlan(false)
     setviewPatientsDiet(false)
     setPlanId(null)
+    setselectedWeek(null)
+    setAllWeeks(null)
   };
 
   const columns = [
@@ -327,7 +329,7 @@ function PatientDietPlan({ PatientId, Name, ContactNumber }) {
         {/* Error State */}
 
 
-        {viewPatientsDiet !== true && addPatientsDiet !== true && plans?.length === 0 && <Typography
+        {viewPatientsDiet !== true && addPatientsDiet !== true && plans?.length === 0 || error && <Typography
           component="h2"
           variant="h6"
           sx={{ mb: 2, textAlign: "center", color: "gray" }}

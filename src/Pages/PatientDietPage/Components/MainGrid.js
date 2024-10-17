@@ -27,11 +27,12 @@ import { useNavigate } from "react-router-dom";
 import PatientDietView from "../Patient-Diet-View";
 import axios from "axios";
 import { MAIN_URL } from "../../../Configs/Urls";
+import { useState } from "react";
 
 export default function MainGrid() {
   let [addPatientsDiet, setaddPatientsDiet] = React.useState(false);
   let [viewPatientsDiet, setviewPatientsDiet] = React.useState(false);
-  const [patients, setPatients] = React.useState([]);
+  const [dietPlans, setDietPlans] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
 
@@ -42,11 +43,11 @@ export default function MainGrid() {
   const [snackbarSeverity, setSnackbarSeverity] = React.useState("success"); // For Snackbar severity
 
   // Fetch patients from API
-  const fetchPatients = async () => {
+  const fetchDietPlans = async () => {
     try {
       setLoading(true); // Start loading
-      const response = await axios.get(`${MAIN_URL}patients`);
-      setPatients(response.data.sort((a, b) => b.id - a.id));
+      const response = await axios.get(`${MAIN_URL}patientdietplans`);
+      setDietPlans(response.data.sort((a, b) => b.id - a.id));
     } catch (error) {
       console.error("Error fetching patients:", error);
       setError("Failed to fetch patients. Please try again.");
@@ -57,37 +58,41 @@ export default function MainGrid() {
 
   // Fetch patients on component mount
   React.useEffect(() => {
-    fetchPatients();
-  }, [addPatientsDiet]);
+    fetchDietPlans();
+  }, []);
 
   let [PatientId, setPatientId] = React.useState(null);
   let [PlanId, setPlanId] = React.useState(null);
+  let [patientName, setPatientName] = React.useState(null);
+  let [selectedWeek, setselectedWeek] = React.useState(null);
+  let [allweek , setallweek] = useState([])
+  let [updatePlan, setUpdatePlan] = React.useState(false);
 
-  let [updatePlan  , setUpdatePlan] = React.useState(false)
-  
   const handleEdit = (row) => {
     console.log("Edit row:", row);
-    setPatientId(row.id);
-    setaddPatientsDiet(true);
-    setUpdatePlan(true)
+    setPatientId(row.patientId);
+    setPlanId(row.id);
+    setPatientName(row.patientName)
+    setselectedWeek(`${row.weekDateStart} - ${row.weekDateEnd}`);
+
+    // let filteredPlans = dietPlans.filter(item => item.patientId == row.patientId);
+
+    // let weeks = filteredPlans.map(item => `${item.weekDateStart} - ${item.weekDateEnd}`)
+    // setallweek(weeks)
+    setUpdatePlan(true);
   };
 
   const handleView = (row) => {
     setviewPatientsDiet(true);
-    setPatientId(row.id);
-    setPlanId(row.planId)
+    setPatientId(row.patientId);
+    setPlanId(row.id);
   };
 
   const handleDelete = (row) => {
-    setPatientId(row.id);
-    setPlanId(row.planId);
+    setPatientId(row.patientId);
+    setPlanId(row.id);
     setOpenDeleteDialog(true); // Open delete confirmation dialog
     console.log("Delete row:", row);
-  };
-
-  const handleadd = (row) => {
-    setPatientId(row.id);
-    setaddPatientsDiet(true);
   };
 
   const handleCloseSnackbar = () => {
@@ -97,9 +102,7 @@ export default function MainGrid() {
   const confirmDelete = async () => {
     setDeleteLoading(true);
     try {
-      await axios.delete(
-        `${MAIN_URL}patientdietplans/${PlanId}`
-      );
+      await axios.delete(`${MAIN_URL}patientdietplans/${PlanId}`);
 
       setSnackbarMessage("Patient's Diet Plan Successfully");
       setSnackbarSeverity("success");
@@ -118,24 +121,24 @@ export default function MainGrid() {
       setOpenDeleteDialog(false); // Close the dialog
       setPatientId(null); // Clear patientId
       setDeleteLoading(false);
-      fetchPatients();
+      fetchDietPlans();
     }
   };
 
   const onCloseForm = () => {
     setPatientId(null);
-    setaddPatientsDiet(false);
-    setUpdatePlan(false)
-    setviewPatientsDiet(false)
-    setPlanId(null)
+    setUpdatePlan(false);
+    setviewPatientsDiet(false);
+    setPlanId(null);
+    fetchDietPlans();
   };
 
   const columns = [
     {
-      field: "name",
+      field: "patientName",
       headerName: "Name",
       flex: 1,
-      minWidth: 150,
+      minWidth: 120,
       renderCell: (params) => (
         <div
           style={{
@@ -152,10 +155,10 @@ export default function MainGrid() {
       ),
     },
     {
-      field: "age",
-      headerName: "Age",
+      field: "weekDateStart",
+      headerName: "Plan Start Date",
       flex: 1,
-      minWidth: 50,
+      minWidth: 120,
       renderCell: (params) => (
         <div
           style={{
@@ -163,6 +166,8 @@ export default function MainGrid() {
             justifyContent: "start",
             alignItems: "center",
             height: "100%",
+            whiteSpace: "normal",
+            overflowWrap: "anywhere",
           }}
         >
           {params.value}
@@ -170,9 +175,9 @@ export default function MainGrid() {
       ),
     },
     {
-      field: "gender",
-      headerName: "Gender",
-      flex: 0.8,
+      field: "weekDateEnd",
+      headerName: "Plan End Date",
+      flex: 1,
       minWidth: 100,
       renderCell: (params) => (
         <div
@@ -181,44 +186,6 @@ export default function MainGrid() {
             justifyContent: "start",
             alignItems: "center",
             height: "100%",
-          }}
-        >
-          {params.value}
-        </div>
-      ),
-    },
-    {
-      field: "contactNumber",
-      headerName: "Contact Number",
-      flex: 1.5,
-      minWidth: 100,
-      renderCell: (params) => (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "start",
-            alignItems: "center",
-            height: "100%",
-          }}
-        >
-          {params.value}
-        </div>
-      ),
-    },
-    {
-      field: "email",
-      headerName: "Email",
-      flex: 1.5,
-      minWidth: 100,
-      renderCell: (params) => (
-        <div
-          style={{
-            display: "flex",
-            overflow: "wrap",
-            justifyContent: "start",
-            alignItems: "center",
-            height: "100%",
-            flexWrap: "wrap",
           }}
         >
           {params.value}
@@ -241,61 +208,42 @@ export default function MainGrid() {
             height: "100%",
           }}
         >
-          {params.row.hasPlan ? (
-            <>
-              <Button
-                variant="contained"
-                color="danger"
-                size="small"
-                startIcon={<VisibilityIcon />}
-                onClick={(event) => {
-                  event.stopPropagation();
-              handleView(params.row)
-                }}
-              >
-                View
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                size="small"
-                startIcon={<EditIcon />}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  handleEdit(params.row);
-                }}
-              >
-                Edit
-              </Button>
-              <Button
-                variant="contained"
-                color="secondary"
-                size="small"
-                startIcon={<DeleteIcon />}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  handleDelete(params.row);
-                }}
-              >
-                Delete
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                variant="contained"
-                color="primary"
-                size="small"
-                startIcon={<AddCircleIcon />}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  handleadd(params.row);
-                }}
-              >
-                Add Diet Plan
-              </Button>
-            </>
-          )}
+          <Button
+            variant="contained"
+            color="danger"
+            size="small"
+            startIcon={<VisibilityIcon />}
+            onClick={(event) => {
+              event.stopPropagation();
+              handleView(params.row);
+            }}
+          >
+            View
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            startIcon={<EditIcon />}
+            onClick={(event) => {
+              event.stopPropagation();
+              handleEdit(params.row);
+            }}
+          >
+            Edit
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            size="small"
+            startIcon={<DeleteIcon />}
+            onClick={(event) => {
+              event.stopPropagation();
+              handleDelete(params.row);
+            }}
+          >
+            Delete
+          </Button>
         </div>
       ),
     },
@@ -303,7 +251,7 @@ export default function MainGrid() {
 
   return (
     <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" } }}>
-      {(addPatientsDiet == true || viewPatientsDiet == true) && (
+      {(viewPatientsDiet == true || updatePlan == true) && (
         <Button
           variant="contained"
           color="primary"
@@ -315,11 +263,7 @@ export default function MainGrid() {
       )}
 
       <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-        {addPatientsDiet == true
-          ? `${updatePlan === true ? "Update" : "Add"} Diet Plan of " ${patients
-              ?.filter((item) => item.id == PatientId)[0]
-              ?.name?.toUpperCase()} "`
-          : "Patients Diet List"}
+        {updatePlan === true ? `Update Diet Plan of " ${patientName} "` : "Diet Plans"}
       </Typography>
 
       {/* Loading State */}
@@ -340,40 +284,43 @@ export default function MainGrid() {
       )}
 
       {/* Error State */}
-      {error && (
-        <Typography component="h2" variant="h6" color="error" sx={{ mb: 2 }}>
-          {error}
-        </Typography>
-      )}
 
-      {/* Patient Data */}
-      {!loading && !error && patients.length > 0 ? (
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            {viewPatientsDiet ? (
-              <PatientDietView
-                planId={PlanId}
-                onCloseForm={onCloseForm}
-              />
-            ) : addPatientsDiet ? (
-              <PatientDietForm
-                patientId={PatientId}
-                onCloseForm={onCloseForm}
-              />
-            ) : (
-              <CustomizedDataGrid rows={patients} columns={columns} />
-            )}
-          </Grid>
-        </Grid>
-      ) : !loading && !error && patients.length === 0 ? (
-        <Typography
+      {viewPatientsDiet !== true && dietPlans?.length === 0 || error && <Typography
           component="h2"
           variant="h6"
           sx={{ mb: 2, textAlign: "center", color: "gray" }}
         >
-          No Patients Data Available
-        </Typography>
-      ) : null}
+          {error || "No Plans added yet for this Patient"}
+        </Typography>}
+
+
+      {/* Patient Data */}
+
+      <Grid container spacing={2}>
+          <Grid item xs={12} mt={2}>
+            {viewPatientsDiet ? (
+              <PatientDietView
+              showPatientInfo={true}
+              planId={PlanId}
+              onCloseForm={onCloseForm}
+              selectedWeekdefault={PlanId == null ? "" : selectedWeek} 
+              />
+            ) : updatePlan ? (
+              <PatientDietForm
+              showPatientInfo={true}
+                patientId={PatientId}
+                onCloseForm={onCloseForm}
+                name={patientName}
+                planId={PlanId}
+                selectedPlansWeeks={allweek}
+                selectedWeekdefault={PlanId == null ? "" : selectedWeek} 
+              />
+            ) : (
+              dietPlans.length > 0 && <CustomizedDataGrid rows={dietPlans} columns={columns} />
+            )}
+          </Grid>
+        </Grid>
+
 
       {/* Delete Confirmation Dialog */}
       <Dialog

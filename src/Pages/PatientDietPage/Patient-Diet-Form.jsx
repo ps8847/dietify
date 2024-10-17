@@ -83,12 +83,25 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
     setOpenSnackbar(false);
   };
 
-
   const [selectedWeek, setSelectedWeek] = useState(selectedWeekdefault || "");
   const weeklyRanges = generateWeeklyRanges();
 
   const handleWeekChange = (event) => {
     setSelectedWeek(event.target.value);
+  };
+
+  let fetchPatientData = async () => {
+    await axios
+      .get(`${MAIN_URL}patients/${patientId}`)
+      .then((response) => {
+        setFetchedPatientData(response.data);
+      
+      })
+      .catch((error) => {
+        setSnackbarMessage("Error fetching patient data.");
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
+      });
   };
 
   const fetchDietPlans = async () => {
@@ -114,6 +127,7 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
   useEffect(() => {
     if (patientId) {
       fetchDietPlans();
+      fetchPatientData();
     }
   }, [patientId]);
 
@@ -374,3 +388,5 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
 };
 
 export default PatientDietForm;
+
+
