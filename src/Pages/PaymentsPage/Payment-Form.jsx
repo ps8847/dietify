@@ -1,17 +1,9 @@
 import React, { useEffect, useState } from "react";
-import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-  Stack,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-  Snackbar,
-  Alert,
-} from "@mui/material";
+
+
+import { Box, TextField,Typography, IconButton, FormControl, InputLabel, Select, MenuItem, Button, Stack, Snackbar, Alert } from "@mui/material";
+import { CalendarToday } from "@mui/icons-material";
+
 import { styled } from "@mui/material/styles";
 import axios from "axios";
 import { MAIN_URL } from "../../Configs/Urls";
@@ -80,7 +72,7 @@ const getFormattedDate = (date) => {
   }
 };
 
-export default function PaymentFormPage({patientId , paymentId , onCloseForm}) {
+export default function PaymentFormPage({name , patientId , paymentId , onCloseForm}) {
 
   const [PaymentData, setPaymentData] = useState({
     PatientId : patientId,
@@ -104,8 +96,8 @@ export default function PaymentFormPage({patientId , paymentId , onCloseForm}) {
         .get(`${MAIN_URL}payments/${paymentId}`)
         .then((response) => {
 
-          // make that array empty if 
-response.data.paymentDate = getFormattedDate(response.data.paymentDate)
+          // make that array empty if
+          response.data.paymentDate = getFormattedDate(response.data.paymentDate)
           setPaymentData(response.data);
         })
         .catch((error) => {
@@ -152,6 +144,11 @@ response.data.paymentDate = getFormattedDate(response.data.paymentDate)
     PaymentData.paymentDate = new Date(PaymentData.paymentDate)
 
     const method = paymentId ? "put" : "post";
+
+    if(method == "post"){
+      PaymentData.payerName = name
+    }
+
     const url = paymentId
       ? `${MAIN_URL}payments/${paymentId}`
       : `${MAIN_URL}payments`
@@ -189,6 +186,8 @@ response.data.paymentDate = getFormattedDate(response.data.paymentDate)
   };
 
   return (
+
+
     <Box sx={{ width: "100%", mx: "auto", mt: 1 }}>
       <form onSubmit={handleSubmit}>
         {/* Payment Type */}
@@ -225,7 +224,7 @@ response.data.paymentDate = getFormattedDate(response.data.paymentDate)
 
 
         {/* Date of Payment */}
-        <TextField
+        {/* <TextField
           fullWidth
           error={!!errors.paymentDate}
           helperText={errors.paymentDate}
@@ -239,7 +238,45 @@ response.data.paymentDate = getFormattedDate(response.data.paymentDate)
           InputLabelProps={{
             shrink: true, // to ensure the label stays in place
           }}
-        />
+        /> */}
+
+
+        {/* Date of Payment - Display Icon and Date */}
+        <Box sx={{ display: "flex", alignItems: "center", marginTop: "15px" }}>
+          {/* <IconButton
+            aria-label="pick date"
+            onClick={() => document.getElementById("datePicker").click()}
+          >
+           
+          </IconButton>
+
+          {PaymentData.paymentDate && (
+            <Box sx={{ ml: 2 }}>
+              {PaymentData.paymentDate} 
+            </Box>
+          )} */}
+
+          {/* Hidden Date Picker */}
+          <TextField
+          label="Payment Date"
+            id="datePicker"
+               type="date"
+            name="paymentDate"
+            value={PaymentData.paymentDate}
+            onChange={handleInputChange}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                sx={{ display: "none" }} // Hide the input field
+              />
+            )}
+          />
+
+{errors.paymentDate && <ErrorHeading errorName={errors.paymentDate}/> }
+
+        </Box>
+
+
 
         {/* Purpose/Comment */}
         <TextField
@@ -308,5 +345,6 @@ response.data.paymentDate = getFormattedDate(response.data.paymentDate)
       </Snackbar>
 
     </Box>
+
   );
 }

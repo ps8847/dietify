@@ -10,6 +10,7 @@
     "@mui/material": "^6.1.1",
     "@mui/x-charts": "^7.17.0",
     "@mui/x-data-grid": "^7.17.0",
+    "@mui/x-date-pickers": "^7.21.0",
     "@mui/x-tree-view": "^7.17.0",
     "@reduxjs/toolkit": "^2.2.7",
     "@testing-library/jest-dom": "^5.17.0",

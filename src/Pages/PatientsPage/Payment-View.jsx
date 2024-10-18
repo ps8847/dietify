@@ -376,7 +376,7 @@ console.log("FetchedPaymentsData is :" , FetchedPaymentsData);
         <Grid container spacing={2}>
           <Grid item xs={12}>
             {addPayments ? (
-              <PaymentFormPage patientId={PatientId} paymentId={PaymentId} onCloseForm={onCloseForm} />
+              <PaymentFormPage patientId={PatientId} paymentId={PaymentId} name={Name} onCloseForm={onCloseForm} />
             ) : 
               FetchedPaymentsData?.length > 0 && <CustomizedDataGrid rows={FetchedPaymentsData} columns={columns} /> }
             

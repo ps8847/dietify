@@ -151,6 +151,10 @@ export default function MainGrid() {
       minWidth: 200,
       renderCell: (params) => (
         <div
+        onClick={(event) => {
+          event.stopPropagation();
+          handleView(params.row);
+        }}
           style={{
             display: "flex",
             justifyContent: "start",
@@ -171,6 +175,10 @@ export default function MainGrid() {
       minWidth: 20,
       renderCell: (params) => (
         <div
+        onClick={(event) => {
+          event.stopPropagation();
+          handleView(params.row);
+        }}
           style={{
             display: "flex",
             justifyContent: "start",
@@ -189,6 +197,10 @@ export default function MainGrid() {
       minWidth: 30,
       renderCell: (params) => (
         <div
+        onClick={(event) => {
+          event.stopPropagation();
+          handleView(params.row);
+        }}
           style={{
             display: "flex",
             justifyContent: "start",
@@ -207,6 +219,10 @@ export default function MainGrid() {
       minWidth: 180,
       renderCell: (params) => (
         <div
+        onClick={(event) => {
+          event.stopPropagation();
+          handleView(params.row);
+        }}
           style={{
             display: "flex",
             justifyContent: "start",
@@ -228,6 +244,10 @@ export default function MainGrid() {
 
         return (
           <div
+          onClick={(event) => {
+            event.stopPropagation();
+            handleView(params.row);
+          }}
             style={{
               display: "flex",
               overflowWrap: "anywhere",
