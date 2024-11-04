@@ -244,7 +244,7 @@ export default function MainGrid() {
           sx={{ mb: 2, textAlign: "center", color: "gray" }}
         >
           
-          No DietPlans Data Available
+          No Diet Masters Added yet
         </Typography>
       ) : null}
 

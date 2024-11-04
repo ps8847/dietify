@@ -382,6 +382,7 @@ export default function MainGrid() {
           </Button>
         )}
 
+
       {/* Title */}
       <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
         {openEdit == true && PatientId !== null

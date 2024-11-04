@@ -65,14 +65,14 @@ export default function MainGrid() {
   let [PlanId, setPlanId] = React.useState(null);
   let [patientName, setPatientName] = React.useState(null);
   let [selectedWeek, setselectedWeek] = React.useState(null);
-  let [allweek , setallweek] = useState([])
+  let [allweek, setallweek] = useState([]);
   let [updatePlan, setUpdatePlan] = React.useState(false);
 
   const handleEdit = (row) => {
     console.log("Edit row:", row);
     setPatientId(row.patientId);
     setPlanId(row.id);
-    setPatientName(row.patientName)
+    setPatientName(row.patientName);
     setselectedWeek(`${row.weekDateStart} - ${row.weekDateEnd}`);
 
     // let filteredPlans = dietPlans.filter(item => item.patientId == row.patientId);
@@ -251,7 +251,6 @@ export default function MainGrid() {
 
   return (
     <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" } }}>
-
       {(viewPatientsDiet == true || updatePlan == true) && (
         <Button
           variant="contained"
@@ -264,8 +263,20 @@ export default function MainGrid() {
       )}
 
       <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-        {updatePlan === true ? `Update Diet Plan of " ${patientName} "` : "Diet Plans"}
+        {updatePlan === true
+          ? `Update Diet Plan of " ${patientName} "`
+          : "Diet Plans"}
       </Typography>
+
+      {dietPlans && dietPlans?.length == 0 && (
+        <Typography
+          component="h2"
+          variant="h6"
+          sx={{ mb: 2, textAlign: "center", color: "gray" }}
+        >
+          No Diet Plans Data Available
+        </Typography>
+      )}
 
       {/* Loading State */}
       {loading && (
@@ -286,40 +297,45 @@ export default function MainGrid() {
 
       {/* Error State */}
 
-      {viewPatientsDiet !== true && dietPlans?.length === 0 || error && <Typography
-          component="h2"
-          variant="h6"
-          sx={{ mb: 2, textAlign: "center", color: "gray" }}
-        >
-          {error || "No Plans added yet for this Patient"}
-        </Typography>}
+      {(viewPatientsDiet !== true && dietPlans?.length === 0) ||
+        (error && (
+          <Typography
+            component="h2"
+            variant="h6"
+            sx={{ mb: 2, textAlign: "center", color: "gray" }}
+          >
+            {error || "No Plans added yet for this Patient"}
+          </Typography>
+        ))}
 
       {/* Patient Data */}
 
       <Grid container spacing={2}>
-          <Grid item xs={12} mt={2}>
-            {viewPatientsDiet ? (
-              <PatientDietView
+        <Grid item xs={12} mt={2}>
+          {viewPatientsDiet ? (
+            <PatientDietView
               showPatientInfo={true}
               planId={PlanId}
               onCloseForm={onCloseForm}
-              selectedWeekdefault={PlanId == null ? "" : selectedWeek} 
-              />
-            ) : updatePlan ? (
-              <PatientDietForm
+              selectedWeekdefault={PlanId == null ? "" : selectedWeek}
+            />
+          ) : updatePlan ? (
+            <PatientDietForm
               showPatientInfo={true}
-                patientId={PatientId}
-                onCloseForm={onCloseForm}
-                name={patientName}
-                planId={PlanId}
-                selectedPlansWeeks={allweek}
-                selectedWeekdefault={PlanId == null ? "" : selectedWeek} 
-              />
-            ) : (
-              dietPlans.length > 0 && <CustomizedDataGrid rows={dietPlans} columns={columns} />
-            )}
-          </Grid>
+              patientId={PatientId}
+              onCloseForm={onCloseForm}
+              name={patientName}
+              planId={PlanId}
+              selectedPlansWeeks={allweek}
+              selectedWeekdefault={PlanId == null ? "" : selectedWeek}
+            />
+          ) : (
+            dietPlans.length > 0 && (
+              <CustomizedDataGrid rows={dietPlans} columns={columns} />
+            )
+          )}
         </Grid>
+      </Grid>
 
       {/* Delete Confirmation Dialog */}
       <Dialog
