@@ -76,11 +76,12 @@ const capitalizeWords = (str) => {
 const categories = [
   "Early Morning",
   "Breakfast",
-  "Mid Meal",
+  "Mid Meal (after 2 hours)",
   "Lunch",
-  "Mid Evening Meal",
+  "Evening",
+  "Pre Dinner",
   "Dinner",
-  "All Day",
+  'Post Dinner'
 ];
 
 export default function DietPlanFormPage({ dietPlanId, onCloseForm, allAddedCategories }) {

@@ -251,6 +251,7 @@ export default function MainGrid() {
 
   return (
     <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" } }}>
+
       {(viewPatientsDiet == true || updatePlan == true) && (
         <Button
           variant="contained"
@@ -293,7 +294,6 @@ export default function MainGrid() {
           {error || "No Plans added yet for this Patient"}
         </Typography>}
 
-
       {/* Patient Data */}
 
       <Grid container spacing={2}>
@@ -320,7 +320,6 @@ export default function MainGrid() {
             )}
           </Grid>
         </Grid>
-
 
       {/* Delete Confirmation Dialog */}
       <Dialog

@@ -25,11 +25,12 @@ import { MAIN_URL } from "../../../Configs/Urls";
 const categories = [
   "Early Morning",
   "Breakfast",
-  "Mid Meal",
+  "Mid Meal (after 2 hours)",
   "Lunch",
-  "Mid Evening Meal",
+  "Evening",
+  "Pre Dinner",
   "Dinner",
-  "All Day",
+  'Post Dinner'
 ];
 
 const categoryOrder = categories.reduce((acc, category, index) => {
