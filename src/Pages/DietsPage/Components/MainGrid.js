@@ -137,7 +137,7 @@ export default function MainGrid() {
         {showAddForm ? "View Diet Plans" : "Add Diet Plan"}
       </Button>
 
-      <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
+      {/* <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
         {showAddForm
           ? DietPlanId !== null
             ? `Update DietPlan for " ${
@@ -145,7 +145,7 @@ export default function MainGrid() {
               } "`
             : "Add New Diet Plan"
           : "Diet Plans List"}
-      </Typography>
+      </Typography> */}
 
       {/* Loading State */}
       {loading && (
@@ -164,6 +164,7 @@ export default function MainGrid() {
         </Box>
       )}
 
+{/* error is : {error} */}
       {/* Error State */}
       {error && (
         <Typography component="h2" variant="h6" color="error" sx={{ mb: 2 }}>

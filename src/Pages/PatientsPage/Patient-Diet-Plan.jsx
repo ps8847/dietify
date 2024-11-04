@@ -328,8 +328,7 @@ function PatientDietPlan({ PatientId, Name, ContactNumber }) {
 
         {/* Error State */}
 
-
-        {viewPatientsDiet !== true && addPatientsDiet !== true && plans?.length === 0 || error && <Typography
+        {viewPatientsDiet !== true && addPatientsDiet !== true && (plans?.length === 0 || error) && <Typography
           component="h2"
           variant="h6"
           sx={{ mb: 2, textAlign: "center", color: "gray" }}
