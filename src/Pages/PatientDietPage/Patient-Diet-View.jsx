@@ -33,10 +33,6 @@ const categories = [
   'Post Dinner'
 ];
 
-const categoryOrder = categories.reduce((acc, category, index) => {
-  acc[category] = index;
-  return acc;
-}, {});
 
 function PatientDietView({ planId, onCloseForm , showPatientInfo , selectedWeekdefault}) {
 
@@ -68,7 +64,7 @@ function PatientDietView({ planId, onCloseForm , showPatientInfo , selectedWeekd
 
         // Sort diet plans based on the category order
         const CategorisedCategories = response.data.CategorisedCategories.sort((a, b) => {
-          return categoryOrder[a] - categoryOrder[b];
+          return a - b;
         });
 
         console.log("CategorisedCategories is : ", CategorisedCategories);
@@ -82,6 +78,9 @@ function PatientDietView({ planId, onCloseForm , showPatientInfo , selectedWeekd
       });
   };
 
+
+  console.log("DietPlan is : " , DietPlan);
+  
   useEffect(() => {
     if (planId) {
       fetchPatientDietData()
@@ -188,10 +187,10 @@ function PatientDietView({ planId, onCloseForm , showPatientInfo , selectedWeekd
           </TableHead>
           <TableBody>
             {orderedDaysOfWeek?.map((day, dayIndex) => (
-              orderedCategories?.map((category, index) => (
+              categories?.map((category, index) => (
                 <TableRow key={`${day}-${category}`} style={{ backgroundColor: getRowColor(index), border: '1px solid #ccc' }}>
                   {index === 0 && (
-                    <TableCell rowSpan={orderedCategories.length} style={{ border: '1px solid #ccc' }}>
+                    <TableCell rowSpan={categories.length} style={{ border: '1px solid #ccc' }}>
                       {day}
                     </TableCell>
                   )}

@@ -240,6 +240,10 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
     setSelectedDay(day);
   };
 
+  console.log("FetchedDietPlan is : " , FetchedDietPlan);
+  console.log("currentSelections is : " , currentSelections);
+  console.log("selectedDay is : " , selectedDay);
+  
   return (
     <Paper style={{ padding: 20, backgroundColor: '#f5f8fa' }}>
 
@@ -320,10 +324,10 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
         </Box>
 
         <Box flexGrow={1}>
-          {FetchedDietPlan?.map((meal) => (
-            <FormControl fullWidth variant="outlined" margin="normal" key={meal.category}>
+          {categories?.map((category) => (
+            <FormControl fullWidth variant="outlined" margin="normal" key={category}>
               <InputLabel
-                id={`${meal.category}-label`}
+                id={`${category}-label`}
                 sx={{
                   background: "#f5f6fa",
                   paddingLeft: "5px",
@@ -334,22 +338,22 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
                   },
                 }}
               >
-                {meal.category}
+                {category}
               </InputLabel>
               <Select
-                labelId={`${meal.category}-label`}
+                labelId={`${category}-label`}
                 multiple
-                value={currentSelections[selectedDay]?.[meal.category] || []}
-                onChange={(e) => handlePlanChange(meal.category, e.target.value)}
+                value={currentSelections[selectedDay]?.[category] || []}
+                onChange={(e) => handlePlanChange(category, e.target.value)}
                 renderValue={(selected) => selected.join(', ')}
               >
                 {Array.from(new Set([
-                  ...(FetchedDietPlan?.find(d => d.category === meal.category)?.values || []),
-                  ...(currentSelections[selectedDay]?.[meal.category] || [])
+                  ...(FetchedDietPlan?.map(item => item.value) || []),
+                  ...(currentSelections[selectedDay]?.[category] || [])
                 ])).map((plan) => (
                   <MenuItem key={plan} value={plan}>
                     <Checkbox
-                      checked={currentSelections[selectedDay]?.[meal.category]?.includes(plan)}
+                      checked={currentSelections[selectedDay]?.[category]?.includes(plan)}
                     />
                     <ListItemText primary={plan} />
                   </MenuItem>

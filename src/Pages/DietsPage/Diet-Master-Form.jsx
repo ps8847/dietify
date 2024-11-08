@@ -72,26 +72,12 @@ const capitalizeWords = (str) => {
     .join(" ");
 };
 
-// // List of available categories
-const categories = [
-  "Early Morning",
-  "Breakfast",
-  "Mid Meal (after 2 hours)",
-  "Lunch",
-  "Evening",
-  "Pre Dinner",
-  "Dinner",
-  'Post Dinner'
-];
 
 export default function DietPlanFormPage({ dietPlanId, onCloseForm, allAddedCategories }) {
 
   console.log("allAddedCategories is : ", allAddedCategories);
 
-  const [dietPlanData, setDietPlanData] = useState({
-    category: "",
-    values: [],
-  });
+  const [dietPlanData, setDietPlanData] = useState("");
 
   const [categoryName, setCategoryName] = useState("");
   const [editIndex, setEditIndex] = useState(null); // Track index of editing chip
@@ -117,6 +103,7 @@ export default function DietPlanFormPage({ dietPlanId, onCloseForm, allAddedCate
     }
   }, [dietPlanId]);
 
+  
   const handleDelete = (chipToDelete) => () => {
     setErrors({})
     setDietPlanData((prevData) => ({
@@ -183,10 +170,7 @@ export default function DietPlanFormPage({ dietPlanId, onCloseForm, allAddedCate
     setErrors({})
     if (inputValue) {
       // Capitalize the input value before adding
-      setDietPlanData((prevData) => ({
-        ...prevData,
-        values: [...prevData.values, capitalizeWords(inputValue)],
-      }));
+      setDietPlanData(capitalizeWords(inputValue));
       setCategoryName("");
     }
   };
@@ -195,7 +179,7 @@ export default function DietPlanFormPage({ dietPlanId, onCloseForm, allAddedCate
 
   const validate = () => {
     const newErrors = {};
-    if (!dietPlanData.category) newErrors.category = "Category is required.";
+    if (!dietPlanData.category) newErrors.values = "Category is required.";
     if (dietPlanData.values.length === 0)
       newErrors.values = "At least one diet should be there.";
     setErrors(newErrors);
@@ -204,35 +188,10 @@ export default function DietPlanFormPage({ dietPlanId, onCloseForm, allAddedCate
 
   console.log("errors is : " , errors);
   
-
   return (
     <Box sx={{ width: "100%", mx: "auto", mt: 1 }}>
       <form onSubmit={handleSubmit}>
-        <FormControl fullWidth sx={{ marginBottom: 2 }} required>
-          <InputLabel>Category</InputLabel>
-          <Select
-            disabled={dietPlanId !== null}
-            value={dietPlanData.category}
-            required
-            label="Category"
-            name="category"
-            onChange={(e) =>
-              setDietPlanData((prevData) => ({
-                ...prevData,
-                category: e.target.value,
-              }))
-            }
-          >
-            {
-              categories.map((item, id) => {
-                return <MenuItem value={item} disabled={allAddedCategories?.includes(item)}>{item}</MenuItem>
-              })
-            }
-
-          </Select>
-        </FormControl>
-        {errors.category && <ErrorHeading errorName={errors.category}/> }
-
+       
         <Stack direction="row" spacing={2} alignItems="center" sx={{ marginBottom: 2 }}>
           <TextField
             fullWidth
@@ -248,7 +207,7 @@ export default function DietPlanFormPage({ dietPlanId, onCloseForm, allAddedCate
         </Stack>
 
         <Box sx={{ display: "flex", flexWrap: "wrap", marginBottom: 2 }}>
-          {dietPlanData.values.map((data, index) =>
+          {dietPlanData.map((data, index) =>
             editIndex === index ? (
               <TextField
                 key={index}

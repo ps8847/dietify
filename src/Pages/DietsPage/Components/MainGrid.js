@@ -16,40 +16,31 @@ import {
   DialogActions,
   Snackbar,
   Alert,
+  TextField,
 } from "@mui/material";
 import DietPlanFormPage from "../Diet-Master-Form";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
 import { MAIN_URL } from "../../../Configs/Urls";
-
-// // List of available categories
-const categories = [
-  "Early Morning",
-  "Breakfast",
-  "Mid Meal (after 2 hours)",
-  "Lunch",
-  "Evening",
-  "Pre Dinner",
-  "Dinner",
-  'Post Dinner'
-];
-
-const categoryOrder = categories.reduce((acc, category, index) => {
-  acc[category] = index;
-  return acc;
-}, {});
+import CustomizedDataGrid from "../../Components/CustomizedDataGrid";
 
 export default function MainGrid() {
+
   const [showAddForm, setShowAddForm] = React.useState(false);
   const [DietPlans, setDietPlans] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
+
+  const [showAddEditDialog, setShowAddEditDialog] = React.useState(false);
+  const [dietPlanId, setDietPlanId] = React.useState(null);
+  const [dietPlanValue, setDietPlanValue] = React.useState("");
 
   const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false);
   const [Deleteloading, setDeleteLoading] = React.useState(false);
   const [openSnackbar, setOpenSnackbar] = React.useState(false); // For Snackbar visibility
   const [snackbarMessage, setSnackbarMessage] = React.useState("");
   const [snackbarSeverity, setSnackbarSeverity] = React.useState("success"); // For Snackbar severity
-
 
   // Fetch dietplans from API
   const fetchDietPlans = async () => {
@@ -58,7 +49,7 @@ export default function MainGrid() {
       const response = await axios.get(`${MAIN_URL}dietplans`);
      // Sort diet plans based on the category order
      const sortedDietPlans = response.data.sort((a, b) => {
-      return categoryOrder[a.category] - categoryOrder[b.category];
+      return a - b;
     });
 
     setDietPlans(sortedDietPlans);
@@ -77,11 +68,8 @@ export default function MainGrid() {
 
   const handleToggle = () => setShowAddForm(!showAddForm);
 
-  let [DietPlanId, setDietPlanId] = React.useState(null);
-
   const handleEdit = (id) => {
     setDietPlanId(id);
-    setShowAddForm(true);
   };
 
   const handleDelete = (id) => {
@@ -96,8 +84,8 @@ export default function MainGrid() {
   const confirmDelete = async () => {
     setDeleteLoading(true);
     try {
-      await axios.delete(`${MAIN_URL}dietplans/${DietPlanId}`);
-      setDietPlans(DietPlans.filter((dietPlan) => dietPlan.id !== DietPlanId)); // Remove deleted id from state
+      await axios.delete(`${MAIN_URL}dietplans/${dietPlanId}`);
+      setDietPlans(DietPlans.filter((dietPlan) => dietPlan.id !== dietPlanId)); // Remove deleted id from state
       setSnackbarMessage("DietPlan Deleted Successfully");
       setSnackbarSeverity("success");
       setOpenSnackbar(true);
@@ -118,10 +106,127 @@ export default function MainGrid() {
     }
   };
 
-  const onCloseForm = () => {
+  const handleOpenAddDialog = () => {
     setDietPlanId(null);
-    setShowAddForm(false);
+    setDietPlanValue("");
+    setShowAddEditDialog(true);
   };
+
+  const handleOpenEditDialog = (dietPlan) => {
+    setDietPlanId(dietPlan.id);
+    setDietPlanValue(dietPlan.value);
+    setShowAddEditDialog(true);
+  };
+
+  const handleSaveDietPlan = async () => {
+    try {
+      const data = { value: dietPlanValue };
+      if (dietPlanId) {
+        await axios.put(`${MAIN_URL}dietplans/${dietPlanId}`, data);
+        setSnackbarMessage("Diet plan updated successfully.");
+      } else {
+        await axios.post(`${MAIN_URL}dietplans`, data);
+        setSnackbarMessage("Diet plan added successfully.");
+      }
+      setSnackbarSeverity("success");
+      fetchDietPlans(); // Refresh diet plans
+    } catch (error) {
+      setSnackbarMessage(
+        error?.response?.data?.message || "Failed to save diet plan."
+      );
+      setSnackbarSeverity("error");
+    } finally {
+      setShowAddEditDialog(false);
+      setOpenSnackbar(true);
+    }
+  };
+
+  const columns = [
+    {
+      field: "id",
+      headerName: "Id",
+      flex: 1,
+      minWidth: 30,
+      renderCell: (params) => (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "start",
+            alignItems: "center",
+            height: "100%",
+            whiteSpace: "normal",
+            overflowWrap: "anywhere",
+          }}
+        >
+          {params.id}
+        </div>
+      ),
+    },
+    {
+      field: "value",
+      headerName: "Value",
+      flex: 5,
+      minWidth: 400,
+      renderCell: (params) => (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "start",
+            alignItems: "center",
+            height: "100%",
+            whiteSpace: "normal",
+            overflowWrap: "anywhere",
+          }}
+        >
+          {params.value}
+        </div>
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      width: 300,
+      sortable: false,
+      renderCell: (params) => (
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            padding: "5px",
+            alignItems: "center",
+            justifyContent: "start",
+            height: "100%",
+          }}
+        >
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            startIcon={<EditIcon />}
+            onClick={(event) => {
+              event.stopPropagation();
+              handleOpenEditDialog(params.row);
+            }}
+          >
+            Edit
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            size="small"
+            startIcon={<DeleteIcon />}
+            onClick={(event) => {
+              event.stopPropagation();
+              handleDelete(params.row.id);
+            }}
+          >
+            Delete
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
 
   return (
     <Box sx={{ width: "100%", maxWidth: "1700px" }}>
@@ -129,23 +234,10 @@ export default function MainGrid() {
         variant="contained"
         color="primary"
         sx={{ mb: 2 }}
-        onClick={() => {
-          setShowAddForm(!showAddForm);
-          setDietPlanId(null);
-        }}
+        onClick={handleOpenAddDialog}
       >
-        {showAddForm ? "View Diet Plans" : "Add Diet Plan"}
+        Add Diet
       </Button>
-
-      {/* <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-        {showAddForm
-          ? DietPlanId !== null
-            ? `Update DietPlan for " ${
-                DietPlans.filter((item) => item.id == DietPlanId)[0].category
-              } "`
-            : "Add New Diet Plan"
-          : "Diet Plans List"}
-      </Typography> */}
 
       {/* Loading State */}
       {loading && (
@@ -164,7 +256,6 @@ export default function MainGrid() {
         </Box>
       )}
 
-{/* error is : {error} */}
       {/* Error State */}
       {error && (
         <Typography component="h2" variant="h6" color="error" sx={{ mb: 2 }}>
@@ -173,72 +264,8 @@ export default function MainGrid() {
       )}
 
       {!loading && !error && DietPlans.length > 0 ? (
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            {showAddForm ? (
-              <DietPlanFormPage
-              allAddedCategories={DietPlans?.map(item => item.category)}
-                dietPlanId={DietPlanId}
-                onCloseForm={onCloseForm}
-              />
-            ) : (
-              <Grid container spacing={2}>
-                {DietPlans.map((item, index) => (
-                  <Grid item xs={12} sm={6} md={4} key={index}>
-                    <Card>
-                      <CardContent>
-                        <Typography variant="h6" component="div">
-                          {item.category}
-                        </Typography>
-                        <Stack
-                          direction="row"
-                          spacing={1}
-                          flexWrap="wrap"
-                          mt={1}
-                          mb={1}
-                        >
-                          {item.values.map((plan, planIndex) => (
-                            <Chip
-                              key={planIndex}
-                              label={plan}
-                              sx={{ margin: "4px !important" }}
-                            />
-                          ))}
-                        </Stack>
-                      </CardContent>
-                      <CardActions>
-                        <Button
-                          size="small"
-                          variant="contained"
-                          color="primary"
-                          onClick={() => handleEdit(item.id)}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          size="small"
-                          variant="contained"
-                          color="secondary"
-                          onClick={() => handleDelete(item.id)}
-                        >
-                          Delete
-                        </Button>
-                      </CardActions>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            )}
-          </Grid>
-        </Grid>
-      ) : !loading && !error && DietPlans.length === 0 ? (
-        showAddForm ? (
-          <DietPlanFormPage
-          allAddedCategories={DietPlans?.map(item => item.category)}
-            dietPlanId={DietPlanId}
-            onCloseForm={onCloseForm}
-          />
-        ) :
+          <CustomizedDataGrid rows={DietPlans} columns={columns} />
+      ): (
         <Typography
           component="h2"
           variant="h6"
@@ -247,7 +274,7 @@ export default function MainGrid() {
           
           No Diet Masters Added yet
         </Typography>
-      ) : null}
+      )}
 
       {/* Delete Confirmation Dialog */}
       <Dialog
@@ -286,6 +313,30 @@ export default function MainGrid() {
         </DialogActions>
       </Dialog>
 
+
+      {/* Add/Edit Dialog */}
+      <Dialog open={showAddEditDialog} onClose={() => setShowAddEditDialog(false)}>
+        <DialogTitle>{dietPlanId ? "Edit Diet Plan" : "Add Diet Plan"}</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Value"
+            value={dietPlanValue}
+            onChange={(e) => setDietPlanValue(e.target.value)}
+            fullWidth
+            margin="dense"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowAddEditDialog(false)} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleSaveDietPlan} color="primary" variant="contained">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+
       <Snackbar
         open={openSnackbar}
         autoHideDuration={4000}
@@ -314,3 +365,4 @@ export default function MainGrid() {
     </Box>
   );
 }
+
