@@ -12,6 +12,8 @@ import {
   ListItemText,
   Alert,
   Snackbar,
+  Autocomplete,
+  TextField,
 } from '@mui/material';
 import axios from 'axios';
 import { MAIN_URL } from '../../Configs/Urls';
@@ -323,7 +325,7 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
           ))}
         </Box>
 
-        <Box flexGrow={1}>
+        {/* <Box flexGrow={1}>
           {categories?.map((category) => (
             <FormControl fullWidth variant="outlined" margin="normal" key={category}>
               <InputLabel
@@ -361,7 +363,48 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
               </Select>
             </FormControl>
           ))}
-        </Box>
+        </Box> */}
+
+<Box flexGrow={1}>
+  {categories?.map((category) => (
+    <FormControl fullWidth variant="outlined" margin="normal" key={category}>
+      {/* <InputLabel
+        id={`${category}-label`}
+        sx={{
+          background: "#f5f6fa",
+          paddingLeft: "5px",
+          paddingRight: "5px",
+          transform: "translate(14px, 12px) scale(1)",
+          "&.MuiInputLabel-shrink": {
+            transform: "translate(14px, -6px) scale(0.75)",
+          },
+        }}
+      >
+        {category}
+      </InputLabel> */}
+      
+      <Autocomplete
+      disableCloseOnSelect={true}
+        multiple
+        options={Array.from(new Set([
+          ...(FetchedDietPlan?.map(item => item.value) || []),
+          ...(currentSelections[selectedDay]?.[category] || [])
+        ]))}
+        value={currentSelections[selectedDay]?.[category] || []}
+        onChange={(event, newValue) => handlePlanChange(category, newValue)}
+        renderOption={(props, option, { selected }) => (
+          <MenuItem {...props} key={option} value={option}>
+            <Checkbox checked={selected} />
+            <ListItemText primary={option} />
+          </MenuItem>
+        )}
+        renderInput={(params) => (
+          <TextField {...params} label={category} placeholder="Search..." />
+        )}
+      />
+    </FormControl>
+  ))}
+</Box>
       </Box>
 
       <Button variant="contained" color="primary" disabled={loading} onClick={handleSave} style={{ marginTop: 20 }}>
