@@ -33,6 +33,9 @@ const categories = [
   'Post Dinner'
 ];
 
+let setLocalStorageJSON = (key, data) => {
+  localStorage.setItem(key, JSON.stringify(data));
+};
 
 function PatientDietView({ planId, onCloseForm , showPatientInfo , selectedWeekdefault}) {
 
@@ -77,7 +80,6 @@ function PatientDietView({ planId, onCloseForm , showPatientInfo , selectedWeekd
         setOpenSnackbar(true);
       });
   };
-
 
   console.log("DietPlan is : " , DietPlan);
   
@@ -146,6 +148,27 @@ function PatientDietView({ planId, onCloseForm , showPatientInfo , selectedWeekd
     doc.save('diet-plan.pdf');
   };
 
+  const consoleNonEmptyData = () => {
+
+    let filteredPlan = {};
+
+    Object.entries(DietPlan).forEach(([day, meals]) => {
+        let nonEmptyMeals = Object.fromEntries(
+            Object.entries(meals).filter(([_, items]) => !items.includes("---"))
+        );
+
+        if (Object.keys(nonEmptyMeals).length > 0) {
+            filteredPlan[day] = nonEmptyMeals;
+        }
+    });
+
+    setLocalStorageJSON("CopiedPlan" , filteredPlan);
+
+    setSnackbarMessage("Plan Copied Successfully");
+    setSnackbarSeverity("success");
+    setOpenSnackbar(true);
+
+  }
 
 
   return (
@@ -169,9 +192,16 @@ function PatientDietView({ planId, onCloseForm , showPatientInfo , selectedWeekd
             For The Week: {selectedWeekdefault}
           </Typography>
 
+<div style={{display:"flex" , alignItems:"center" , justifyContent:"space-between" , width:"100%"}}>
       <Button variant="contained" color="primary" onClick={downloadPDF} style={{ marginBottom: '20px' }}>
         Download as PDF
       </Button>
+
+      <Button variant="contained" color="secondary" onClick={consoleNonEmptyData} style={{ marginBottom: '20px' }}>
+        Copy This Diet Plan
+      </Button>
+
+</div>
 
       <Typography variant="h6" gutterBottom>
         Diet Plan
@@ -209,7 +239,7 @@ function PatientDietView({ planId, onCloseForm , showPatientInfo , selectedWeekd
         open={openSnackbar}
         autoHideDuration={4000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           onClose={handleCloseSnackbar}

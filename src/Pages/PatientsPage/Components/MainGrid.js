@@ -30,6 +30,7 @@ import { AlignHorizontalCenter, Assignment, Paid } from "@mui/icons-material";
 import PatientView from "../Patient-View";
 import PaymentView from "../Payment-View";
 import PatientDietPlan from "../Patient-Diet-Plan";
+import PatientAddPrivate from "../PatientAddPrivate";
 
 export default function MainGrid() {
   const [addPatients, setAddPatients] = React.useState(false);
@@ -135,10 +136,10 @@ export default function MainGrid() {
     setPatientId(null);
     setAddPatients(false);
     setopenEdit(false);
-    setOpenDeleteDialog(false)
-    setopenView(false)
-    setopenPayment(false)
-    setopenDietPlans(false)
+    setOpenDeleteDialog(false);
+    setopenView(false);
+    setopenPayment(false);
+    setopenDietPlans(false);
     setPatientName(null);
     setPatientContact(null);
   };
@@ -151,10 +152,10 @@ export default function MainGrid() {
       minWidth: 200,
       renderCell: (params) => (
         <div
-        onClick={(event) => {
-          event.stopPropagation();
-          handleView(params.row);
-        }}
+          onClick={(event) => {
+            event.stopPropagation();
+            handleView(params.row);
+          }}
           style={{
             display: "flex",
             justifyContent: "start",
@@ -175,10 +176,10 @@ export default function MainGrid() {
       minWidth: 20,
       renderCell: (params) => (
         <div
-        onClick={(event) => {
-          event.stopPropagation();
-          handleView(params.row);
-        }}
+          onClick={(event) => {
+            event.stopPropagation();
+            handleView(params.row);
+          }}
           style={{
             display: "flex",
             justifyContent: "start",
@@ -197,10 +198,10 @@ export default function MainGrid() {
       minWidth: 30,
       renderCell: (params) => (
         <div
-        onClick={(event) => {
-          event.stopPropagation();
-          handleView(params.row);
-        }}
+          onClick={(event) => {
+            event.stopPropagation();
+            handleView(params.row);
+          }}
           style={{
             display: "flex",
             justifyContent: "start",
@@ -219,10 +220,10 @@ export default function MainGrid() {
       minWidth: 180,
       renderCell: (params) => (
         <div
-        onClick={(event) => {
-          event.stopPropagation();
-          handleView(params.row);
-        }}
+          onClick={(event) => {
+            event.stopPropagation();
+            handleView(params.row);
+          }}
           style={{
             display: "flex",
             justifyContent: "start",
@@ -244,10 +245,10 @@ export default function MainGrid() {
 
         return (
           <div
-          onClick={(event) => {
-            event.stopPropagation();
-            handleView(params.row);
-          }}
+            onClick={(event) => {
+              event.stopPropagation();
+              handleView(params.row);
+            }}
             style={{
               display: "flex",
               overflowWrap: "anywhere",
@@ -291,7 +292,7 @@ export default function MainGrid() {
           >
             View
           </Button>
-          <Button
+          {params.row.email != undefined && <Button
             variant="contained"
             color="primary"
             size="small"
@@ -302,7 +303,7 @@ export default function MainGrid() {
             }}
           >
             Edit
-          </Button>
+          </Button>}
           <Button
             variant="contained"
             color="danger"
@@ -345,7 +346,7 @@ export default function MainGrid() {
                 backgroundColor: green[700],
               },
               color: "white",
-              textWrap:'nowrap'
+              textWrap: "nowrap",
             }}
             startIcon={<Assignment />}
             onClick={(event) => {
@@ -360,9 +361,22 @@ export default function MainGrid() {
     },
   ];
 
+  let [addPatientOpen, setAddPatientOpen] = React.useState(false);
+
+  let onAddPatientClose = () => {
+    setAddPatientOpen(false);
+    fetchPatients();
+  };
+  let addPatient = () => {
+    setAddPatientOpen(true);
+  };
+
   return (
     <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" }, p: 3 }}>
-      {(openEdit == true || openView == true || openPayment == true || openDietPlans == true) &&
+      {(openEdit == true ||
+        openView == true ||
+        openPayment == true ||
+        openDietPlans == true) &&
         PatientId !== null && (
           <Button
             variant="contained"
@@ -375,22 +389,50 @@ export default function MainGrid() {
               setOpenDeleteDialog(false);
               setopenView(false);
               setopenPayment(false);
-              setopenDietPlans(false)
+              setopenDietPlans(false);
             }}
           >
             View All Patients
           </Button>
         )}
 
-
       {/* Title */}
-      <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-        {openEdit == true && PatientId !== null
-          ? `Update Data of " ${
-              patients.filter((item) => item.id == PatientId)[0].name
-            } "`
-          : (openView == true || openPayment == true || openDietPlans == true) ? "" : "Patients List"}
-      </Typography>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          width: "100%",
+          marginBottom: "15px",
+        }}
+      >
+        <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
+          {openEdit == true && PatientId !== null
+            ? `Update Data of " ${
+                patients.filter((item) => item.id == PatientId)[0].name
+              } "`
+            : openView == true || openPayment == true || openDietPlans == true
+            ? ""
+            : "Patients List"}
+        </Typography>
+
+        {openEdit == true && PatientId !== null ? null : openView == true ||
+          openPayment == true ||
+          openDietPlans == true ? null : (
+          <Button
+            variant="contained"
+            color="secondary"
+            size="small"
+            onClick={(event) => {
+              event.stopPropagation();
+              addPatient();
+            }}
+          >
+            Add Patient
+          </Button>
+        )}
+      </div>
 
       {/* Loading State */}
       {loading && (
@@ -416,35 +458,54 @@ export default function MainGrid() {
         </Typography>
       )}
 
+      {addPatientOpen == true ? (
+        <PatientAddPrivate onCloseForm={onAddPatientClose} />
+      ) : (
+        <>
+          {!loading && !error && patients.length > 0 ? (
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                {openEdit == true && PatientId !== null ? (
+                  <PatientFormPage
+                    patientId={PatientId}
+                    onCloseForm={onCloseForm}
+                  />
+                ) : openView == true && PatientId !== null ? (
+                  <PatientView
+                    PatientId={PatientId}
+                    onCloseForm={onCloseForm}
+                  />
+                ) : openPayment == true && PatientId !== null ? (
+                  <PaymentView
+                    PatientId={PatientId}
+                    onCloseForm={onCloseForm}
+                    Name={PatientName}
+                    ContactNumber={PatientContact}
+                  />
+                ) : openDietPlans == true && PatientId !== null ? (
+                  <PatientDietPlan
+                    PatientId={PatientId}
+                    onCloseForm={onCloseForm}
+                    Name={PatientName}
+                    ContactNumber={PatientContact}
+                  />
+                ) : (
+                  <CustomizedDataGrid rows={patients} columns={columns} />
+                )}
+              </Grid>
+            </Grid>
+          ) : !loading && !error && patients.length === 0 ? (
+            <Typography
+              component="h2"
+              variant="h6"
+              sx={{ mb: 2, textAlign: "center", color: "gray" }}
+            >
+              No Patients Data Available
+            </Typography>
+          ) : null}
+        </>
+      )}
       {/* Patient Data */}
-      {!loading && !error && patients.length > 0 ? (
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            {openEdit == true && PatientId !== null ? (
-              <PatientFormPage
-                patientId={PatientId}
-                onCloseForm={onCloseForm}
-              />
-            ) : openView == true && PatientId !== null ? (
-              <PatientView PatientId={PatientId} onCloseForm={onCloseForm} />
-            ) : openPayment == true && PatientId !== null ? (
-              <PaymentView PatientId={PatientId} onCloseForm={onCloseForm} Name={PatientName} ContactNumber={PatientContact} />
-            ) : openDietPlans == true && PatientId !== null ? (
-              <PatientDietPlan PatientId={PatientId} onCloseForm={onCloseForm} Name={PatientName} ContactNumber={PatientContact}/>
-            ) : (
-              <CustomizedDataGrid rows={patients} columns={columns} />
-            )}
-          </Grid>
-        </Grid>
-      ) : !loading && !error && patients.length === 0 ? (
-        <Typography
-          component="h2"
-          variant="h6"
-          sx={{ mb: 2, textAlign: "center", color: "gray" }}
-        >
-          No Patients Data Available
-        </Typography>
-      ) : null}
 
       {/* Delete Confirmation Dialog */}
       <Dialog

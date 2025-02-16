@@ -14,6 +14,7 @@ import {
   Snackbar,
   Autocomplete,
   TextField,
+  Chip,
 } from '@mui/material';
 import axios from 'axios';
 import { MAIN_URL } from '../../Configs/Urls';
@@ -30,6 +31,17 @@ const categories = [
   'Post Dinner'
 ];
 
+let setLocalStorageJSON = (key, data) => {
+  localStorage.setItem(key, JSON.stringify(data));
+};
+let getLocalStorageJSON = (key) => {
+  let dd = localStorage.getItem(key);
+  return JSON.parse(dd);
+};
+
+let removeLocalStorageJSON = (key) => {
+  localStorage.removeItem(key);
+};
 
 const generateWeeklyRanges = () => {
   const weeks = [];
@@ -56,10 +68,7 @@ const categoryOrder = categories.reduce((acc, category, index) => {
 }, {});
 
 
-const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selectedWeekdefault , onCloseForm, showPatientInfo }) => {
-
-  // console.log("name, patientId , planId, selectedPlansWeeks , selectedWeekdefault , onCloseForm, showPatientInfo  is : " , name, patientId , planId, selectedPlansWeeks , selectedWeekdefault , onCloseForm, showPatientInfo );
-  
+const PatientDietForm = ({ name, patientId, planId, selectedPlansWeeks, selectedWeekdefault, onCloseForm, showPatientInfo }) => {
 
   const [FetchedPatientData, setFetchedPatientData] = useState(null);
   const [FetchedDietPlan, setFetchedDietPlans] = useState(null);
@@ -68,6 +77,23 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const [loading, setLoading] = useState(false);
   const [selectedDay, setSelectedDay] = useState("Sunday");
+  const [currentSelections, setCurrentSelections] = useState({});
+  const [selectedWeek, setSelectedWeek] = useState(selectedWeekdefault || "");
+
+  useEffect(() => {
+
+    if (planId == null) {
+
+      let dataOfPreSave = getLocalStorageJSON(`patient_plan_${patientId}`);
+
+      if (dataOfPreSave) {
+        setSelectedDay(dataOfPreSave.dayOfWeek)
+        setCurrentSelections(dataOfPreSave.currentSelections)
+        setSelectedWeek(dataOfPreSave.selectedWeek)
+      }
+
+    }
+  }, [])
 
   console.log("FetchedDietPlan is : ", FetchedDietPlan);
 
@@ -80,17 +106,48 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
     Friday: {},
     Saturday: {},
   });
-  const [currentSelections, setCurrentSelections] = useState({});
+
+  let pastePlan = () => {
+
+    let dd = getLocalStorageJSON("CopiedPlan");
+
+    setCurrentSelections(dd)
+  }
 
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
   };
 
-  const [selectedWeek, setSelectedWeek] = useState(selectedWeekdefault || "");
   const weeklyRanges = generateWeeklyRanges();
 
   const handleWeekChange = (event) => {
-    setSelectedWeek(event.target.value);
+
+    let week = event.target.value;
+
+    let dataOfPreSave = getLocalStorageJSON(`patient_plan_${patientId}`);
+
+    if (dataOfPreSave) {
+
+      let dd = {
+        ...dataOfPreSave,
+        selectedWeek: week
+      }
+
+      setLocalStorageJSON(`patient_plan_${patientId}`, dd);
+
+    } else {
+
+      let dd = {
+        dayOfWeek: "Sunday",
+        currentSelections: {},
+        selectedWeek: week
+      }
+
+      setLocalStorageJSON(`patient_plan_${patientId}`, dd)
+
+    }
+
+    setSelectedWeek(week);
   };
 
   let fetchPatientData = async () => {
@@ -98,7 +155,7 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
       .get(`${MAIN_URL}patients/${patientId}`)
       .then((response) => {
         setFetchedPatientData(response.data);
-      
+
       })
       .catch((error) => {
         setSnackbarMessage("Error fetching patient data.");
@@ -140,7 +197,7 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
       .then((response) => {
 
         console.log("the response is ");
-        
+
         setmainDietPlans((prev) => ({
           ...prev,
           ...response.data.DietPlan.DietPlan,
@@ -169,13 +226,40 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
       new Set(labels)
     )
 
-    setCurrentSelections((prev) => ({
-      ...prev,
+    let currentSelectionsCopy = { ...currentSelections };
+    let newlyUpdated = {
+      ...currentSelectionsCopy,
       [selectedDay]: {
-        ...prev[selectedDay],
+        ...currentSelectionsCopy[selectedDay],
         [category]: uniqueLabels,
       },
-    }));
+    };
+
+    let dataOfPreSave = getLocalStorageJSON(`patient_plan_${patientId}`);
+
+    if (dataOfPreSave) {
+
+      let dd = {
+        ...dataOfPreSave,
+        currentSelections: newlyUpdated
+      }
+
+      setLocalStorageJSON(`patient_plan_${patientId}`, dd);
+
+    } else {
+
+      let dd = {
+        dayOfWeek: "Sunday",
+        currentSelections: newlyUpdated,
+        selectedWeek: ""
+      }
+
+      setLocalStorageJSON(`patient_plan_${patientId}`, dd)
+
+    }
+
+
+    setCurrentSelections(newlyUpdated);
   };
 
   const handleSave = () => {
@@ -183,7 +267,7 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
       Object.values(dayPlan).every(categoryValues => categoryValues.length === 0)
     );
 
-    if(selectedWeek == ""){
+    if (selectedWeek == "") {
       setSnackbarMessage("Please Select the week for The Diet Plan");
       setSnackbarSeverity("error");
       setOpenSnackbar(true);
@@ -202,11 +286,11 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
     setmainDietPlans(currentSelections);
 
     let mainRequestStruc = {
-      patientName : name,
+      patientName: name,
       patientId,
       DietPlan: currentSelections,
-      weekDateStart : selectedWeek.split(" - ")[0],
-      weekDateEnd : selectedWeek.split(" - ")[1],
+      weekDateStart: selectedWeek.split(" - ")[0],
+      weekDateEnd: selectedWeek.split(" - ")[1],
 
     };
 
@@ -219,6 +303,7 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
 
     axios[method](url, mainRequestStruc)
       .then((res) => {
+        removeLocalStorageJSON(`patient_plan_${patientId}`)
         setSnackbarMessage(planId
           ? "Patient's Diet Plan updated successfully!"
           : "Patient's Diet Plan added successfully!");
@@ -239,13 +324,39 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
   };
 
   const handleDaySelect = (day) => {
+
+    let dataOfPreSave = getLocalStorageJSON(`patient_plan_${patientId}`);
+
+    if (dataOfPreSave) {
+
+      let dd = {
+        ...dataOfPreSave,
+        dayOfWeek: day
+      }
+
+      setLocalStorageJSON(`patient_plan_${patientId}`, dd)
+    } else {
+
+      let dd = {
+        currentSelections: {},
+        dayOfWeek: day,
+        selectedWeek: ""
+      }
+
+      setLocalStorageJSON(`patient_plan_${patientId}`, dd)
+
+    }
+
     setSelectedDay(day);
   };
 
-  console.log("FetchedDietPlan is : " , FetchedDietPlan);
-  console.log("currentSelections is : " , currentSelections);
-  console.log("selectedDay is : " , selectedDay);
-  
+  const [editingChip, setEditingChip] = useState(null);
+  const [editValue, setEditValue] = useState("");
+
+  console.log("FetchedDietPlan is : ", FetchedDietPlan);
+  console.log("currentSelections is : ", currentSelections);
+  console.log("selectedDay is : ", selectedDay);
+
   return (
     <Paper style={{ padding: 20, backgroundColor: '#f5f8fa' }}>
 
@@ -261,47 +372,51 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
         </Paper>
       }
 
-      <Box display="flex" flexDirection="column">
+      <Box display="flex" flexDirection="row" justifyContent={"space-between"} alignItems={"center"}>
 
         {
           planId == null &&
-        <FormControl fullWidth variant="outlined" sx={{ maxWidth: 400, marginBottom: 2 }}>
-          <InputLabel id="weekly-range-label">Select Week</InputLabel>
-          <Select
-            labelId="weekly-range-label"
-            value={selectedWeek}
-            onChange={handleWeekChange}
+          <FormControl fullWidth variant="outlined" sx={{ maxWidth: 400, marginBottom: 2 }}>
+            <InputLabel id="weekly-range-label">Select Week</InputLabel>
+            <Select
+              labelId="weekly-range-label"
+              value={selectedWeek}
+              onChange={handleWeekChange}
 
-            label="Select Week"
-            sx={{
-              background: "#fff",
-              borderRadius: "8px",
-              '& .MuiSelect-select': {
-                padding: "10px",
-              },
-            }}
-          >
-            {weeklyRanges.map((week, index) => (
-              <MenuItem disabled={selectedPlansWeeks?.includes(`${week.date1} - ${week.date2}`)} key={index} value={`${week.date1} - ${week.date2}`}>
-                <Typography variant="body2" color="textPrimary">
-                  {`${week.date1} - ${week.date2}`}
-                </Typography>
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+              label="Select Week"
+              sx={{
+                background: "#fff",
+                borderRadius: "8px",
+                '& .MuiSelect-select': {
+                  padding: "10px",
+                },
+              }}
+            >
+              {weeklyRanges.map((week, index) => (
+                <MenuItem disabled={selectedPlansWeeks?.includes(`${week.date1} - ${week.date2}`)} key={index} value={`${week.date1} - ${week.date2}`}>
+                  <Typography variant="body2" color="textPrimary">
+                    {`${week.date1} - ${week.date2}`}
+                  </Typography>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         }
 
-        {selectedWeek && (
+
+        <Button variant="contained" color="secondary" onClick={pastePlan} style={{ marginBottom: '20px' }}>
+          Paste The Plan
+        </Button>
+        {/* {selectedWeek && (
           <Typography variant="h6" mt={2} mb={2}>
             Selected Week: {selectedWeek}
           </Typography>
-        )}
+        )} */}
       </Box>
 
       <Box display="flex">
         <Box display="flex" flexDirection="column" marginRight={2} alignItems={'center'} justifyContent={'center'}>
-          {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday","Sunday"].map((day) => (
+          {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
             <Box
               key={day}
               onClick={() => handleDaySelect(day)}
@@ -325,86 +440,71 @@ const PatientDietForm = ({name, patientId , planId, selectedPlansWeeks , selecte
           ))}
         </Box>
 
-        {/* <Box flexGrow={1}>
+        <Box flexGrow={1}>
           {categories?.map((category) => (
             <FormControl fullWidth variant="outlined" margin="normal" key={category}>
-              <InputLabel
-                id={`${category}-label`}
-                sx={{
-                  background: "#f5f6fa",
-                  paddingLeft: "5px",
-                  paddingRight: "5px",
-                  transform: "translate(14px, 12px) scale(1)",
-                  '&.MuiInputLabel-shrink': {
-                    transform: "translate(14px, -6px) scale(0.75)",
-                  },
-                }}
-              >
-                {category}
-              </InputLabel>
-              <Select
-                labelId={`${category}-label`}
+              <Autocomplete
+                disableCloseOnSelect
                 multiple
+                options={Array.from(
+                  new Set([
+                    ...(FetchedDietPlan?.map((item) => item.value) || []),
+                    ...(currentSelections[selectedDay]?.[category] || []),
+                  ])
+                )}
                 value={currentSelections[selectedDay]?.[category] || []}
-                onChange={(e) => handlePlanChange(category, e.target.value)}
-                renderValue={(selected) => selected.join(', ')}
-              >
-                {Array.from(new Set([
-                  ...(FetchedDietPlan?.map(item => item.value) || []),
-                  ...(currentSelections[selectedDay]?.[category] || [])
-                ])).map((plan) => (
-                  <MenuItem key={plan} value={plan}>
-                    <Checkbox
-                      checked={currentSelections[selectedDay]?.[category]?.includes(plan)}
-                    />
-                    <ListItemText primary={plan} />
+                onChange={(event, newValue) => handlePlanChange(category, newValue)}
+                renderOption={(props, option, { selected }) => (
+                  <MenuItem {...props} key={option} value={option}>
+                    <Checkbox checked={selected} />
+                    <ListItemText primary={option} />
                   </MenuItem>
-                ))}
-              </Select>
+                )}
+                renderTags={(tagValues, getTagProps) =>
+                  tagValues.map((option, index) => {
+                    const isEditing = editingChip === option;
+                    return isEditing ? (
+                      <TextField
+                        key={option}
+                        size="small"
+                        value={editValue}
+                        autoFocus
+                        onBlur={() => {
+                          setEditingChip(null);
+                          handlePlanChange(category, [
+                            ...tagValues.filter((tag) => tag !== option),
+                            editValue,
+                          ]);
+                        }}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            setEditingChip(null);
+                            handlePlanChange(category, [
+                              ...tagValues.filter((tag) => tag !== option),
+                              editValue,
+                            ]);
+                          }
+                        }}
+                      />
+                    ) : (
+                      <Chip
+                        {...getTagProps({ index })}
+                        key={option}
+                        label={option}
+                        onDoubleClick={() => {
+                          setEditingChip(option);
+                          setEditValue(option);
+                        }}
+                      />
+                    );
+                  })
+                }
+                renderInput={(params) => <TextField {...params} label={category} placeholder="Search..." />}
+              />
             </FormControl>
           ))}
-        </Box> */}
-
-<Box flexGrow={1}>
-  {categories?.map((category) => (
-    <FormControl fullWidth variant="outlined" margin="normal" key={category}>
-      {/* <InputLabel
-        id={`${category}-label`}
-        sx={{
-          background: "#f5f6fa",
-          paddingLeft: "5px",
-          paddingRight: "5px",
-          transform: "translate(14px, 12px) scale(1)",
-          "&.MuiInputLabel-shrink": {
-            transform: "translate(14px, -6px) scale(0.75)",
-          },
-        }}
-      >
-        {category}
-      </InputLabel> */}
-      
-      <Autocomplete
-      disableCloseOnSelect={true}
-        multiple
-        options={Array.from(new Set([
-          ...(FetchedDietPlan?.map(item => item.value) || []),
-          ...(currentSelections[selectedDay]?.[category] || [])
-        ]))}
-        value={currentSelections[selectedDay]?.[category] || []}
-        onChange={(event, newValue) => handlePlanChange(category, newValue)}
-        renderOption={(props, option, { selected }) => (
-          <MenuItem {...props} key={option} value={option}>
-            <Checkbox checked={selected} />
-            <ListItemText primary={option} />
-          </MenuItem>
-        )}
-        renderInput={(params) => (
-          <TextField {...params} label={category} placeholder="Search..." />
-        )}
-      />
-    </FormControl>
-  ))}
-</Box>
+        </Box>
       </Box>
 
       <Button variant="contained" color="primary" disabled={loading} onClick={handleSave} style={{ marginTop: 20 }}>
