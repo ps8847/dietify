@@ -43,29 +43,40 @@ let removeLocalStorageJSON = (key) => {
   localStorage.removeItem(key);
 };
 
-const generateWeeklyRanges = () => {
+const generateWeeklyRanges = (startDay = "Monday") => {
+  const dayMap = {
+    Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3,
+    Thursday: 4, Friday: 5, Saturday: 6
+  };
   const weeks = [];
-  const today = dayjs(); // Current date using dayjs
-  const startOfWeek = today.startOf('week').add(1, 'day'); // Adjust to Monday
+  const today = dayjs();
+  const startOfWeek = today.startOf('week').add(dayMap[startDay], 'day');
   const oneYearFromToday = today.add(1, 'year');
 
   let currentStartOfWeek = startOfWeek;
 
   while (currentStartOfWeek.isBefore(oneYearFromToday)) {
     const startDate = currentStartOfWeek.format("DD-MM-YYYY");
-    const endDate = currentStartOfWeek.add(6, 'days').format("DD-MM-YYYY");
+    const endDate = currentStartOfWeek.add(6, 'day').format("DD-MM-YYYY");
     weeks.push({ date1: startDate, date2: endDate });
-    currentStartOfWeek = currentStartOfWeek.add(7, 'days'); // Move to the next week
+    currentStartOfWeek = currentStartOfWeek.add(7, 'day');
   }
 
   return weeks;
 };
 
 
+
 const categoryOrder = categories.reduce((acc, category, index) => {
   acc[category] = index;
   return acc;
 }, {});
+
+const getOrderedDays = (startDay) => {
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const startIndex = days.indexOf(startDay);
+  return [...days.slice(startIndex), ...days.slice(0, startIndex)];
+};
 
 
 const PatientDietForm = ({ name, patientId, planId, selectedPlansWeeks, selectedWeekdefault, onCloseForm, showPatientInfo }) => {
@@ -79,6 +90,7 @@ const PatientDietForm = ({ name, patientId, planId, selectedPlansWeeks, selected
   const [selectedDay, setSelectedDay] = useState("Sunday");
   const [currentSelections, setCurrentSelections] = useState({});
   const [selectedWeek, setSelectedWeek] = useState(selectedWeekdefault || "");
+  const [weekStartDay, setWeekStartDay] = useState("Monday");
 
   useEffect(() => {
 
@@ -107,6 +119,7 @@ const PatientDietForm = ({ name, patientId, planId, selectedPlansWeeks, selected
     Saturday: {},
   });
 
+
   let pastePlan = () => {
 
     let dd = getLocalStorageJSON("CopiedPlan");
@@ -118,7 +131,8 @@ const PatientDietForm = ({ name, patientId, planId, selectedPlansWeeks, selected
     setOpenSnackbar(false);
   };
 
-  const weeklyRanges = generateWeeklyRanges();
+  const weeklyRanges = generateWeeklyRanges(weekStartDay);
+
 
   const handleWeekChange = (event) => {
 
@@ -206,6 +220,15 @@ const PatientDietForm = ({ name, patientId, planId, selectedPlansWeeks, selected
           ...prev,
           ...response.data.DietPlan.DietPlan,
         }));
+
+        let date = response.data.DietPlan.weekDateStart;    // "15-08-2025"
+
+      // Convert to day name using dayjs
+      const [day, month, year] = date.split('-');
+      const formattedDay = dayjs(`${year}-${month}-${day}`).format('dddd'); // e.g., "Friday"
+
+        setWeekStartDay(formattedDay)
+        setSelectedDay(formattedDay)
       })
       .catch((error) => {
         setSnackbarMessage("Error fetching Diet Plan data.");
@@ -376,47 +399,59 @@ const PatientDietForm = ({ name, patientId, planId, selectedPlansWeeks, selected
 
         {
           planId == null &&
-          <FormControl fullWidth variant="outlined" sx={{ maxWidth: 400, marginBottom: 2 }}>
-            <InputLabel id="weekly-range-label">Select Week</InputLabel>
-            <Select
-              labelId="weekly-range-label"
-              value={selectedWeek}
-              onChange={handleWeekChange}
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <FormControl variant="outlined" sx={{ width:300, marginBottom: 2 }}>
+              <InputLabel id="week-start-label">Week Starts On</InputLabel>
+              <Select
+                labelId="week-start-label"
+                value={weekStartDay}
+                onChange={(e) => setWeekStartDay(e.target.value)}
+                label="Week Starts On"
+              >
+                {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((day) => (
+                  <MenuItem key={day} value={day}>
+                    {day}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth variant="outlined" sx={{ width: 300, marginBottom: 2 }}>
+              <InputLabel id="weekly-range-label">Select Week</InputLabel>
+              <Select
+                labelId="weekly-range-label"
+                value={selectedWeek}
+                onChange={handleWeekChange}
 
-              label="Select Week"
-              sx={{
-                background: "#fff",
-                borderRadius: "8px",
-                '& .MuiSelect-select': {
-                  padding: "10px",
-                },
-              }}
-            >
-              {weeklyRanges.map((week, index) => (
-                <MenuItem disabled={selectedPlansWeeks?.includes(`${week.date1} - ${week.date2}`)} key={index} value={`${week.date1} - ${week.date2}`}>
-                  <Typography variant="body2" color="textPrimary">
-                    {`${week.date1} - ${week.date2}`}
-                  </Typography>
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+                label="Select Week"
+                sx={{
+                  background: "#fff",
+                  borderRadius: "8px",
+                  '& .MuiSelect-select': {
+                    padding: "10px",
+                  },
+                }}
+              >
+                {weeklyRanges.map((week, index) => (
+                  <MenuItem disabled={selectedPlansWeeks?.includes(`${week.date1} - ${week.date2}`)} key={index} value={`${week.date1} - ${week.date2}`}>
+                    <Typography variant="body2" color="textPrimary">
+                      {`${week.date1} - ${week.date2}`}
+                    </Typography>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
         }
 
 
         <Button variant="contained" color="secondary" onClick={pastePlan} style={{ marginBottom: '20px' }}>
           Paste The Plan
         </Button>
-        {/* {selectedWeek && (
-          <Typography variant="h6" mt={2} mb={2}>
-            Selected Week: {selectedWeek}
-          </Typography>
-        )} */}
       </Box>
 
       <Box display="flex">
         <Box display="flex" flexDirection="column" marginRight={2} alignItems={'center'} justifyContent={'center'}>
-          {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
+          {getOrderedDays(weekStartDay).map((day) => (
             <Box
               key={day}
               onClick={() => handleDaySelect(day)}

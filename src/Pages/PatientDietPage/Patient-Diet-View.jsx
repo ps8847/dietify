@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   Table,
@@ -9,18 +8,16 @@ import {
   TableRow,
   Paper,
   Typography,
-  Grid,
   Button,
   Snackbar,
   Alert,
 } from '@mui/material';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable'; // Import the autotable plugin for jsPDF
+import 'jspdf-autotable';
 import axios from 'axios';
 import { MAIN_URL } from '../../Configs/Urls';
 
-// Ordered days of the week and meal categories
-const orderedDaysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' , 'Sunday'];
+const defaultOrderedDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 const categories = [
   "Early Morning",
@@ -30,24 +27,19 @@ const categories = [
   "Evening",
   "Pre Dinner",
   "Dinner",
-  'Post Dinner'
+  "Post Dinner"
 ];
 
 let setLocalStorageJSON = (key, data) => {
   localStorage.setItem(key, JSON.stringify(data));
 };
 
-function PatientDietView({ planId, onCloseForm , showPatientInfo , selectedWeekdefault}) {
-
-
-  console.log("planId, onCloseForm , showPatientInfo , selectedWeekdefault is : " , planId, onCloseForm , showPatientInfo , selectedWeekdefault);
-  
+function PatientDietView({ planId, onCloseForm, showPatientInfo, selectedWeekdefault }) {
 
   const [patientData, setPatietnData] = useState(null);
   const [DietPlan, setDietPlan] = useState(null);
-  const [orderedCategories, setOrderedCategories] = useState([])
-
-  console.log("orderedCategories is : ", orderedCategories);
+  const [orderedCategories, setOrderedCategories] = useState([]);
+  const [orderedDaysOfWeek, setOrderedDaysOfWeek] = useState(defaultOrderedDays);
 
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -57,155 +49,141 @@ function PatientDietView({ planId, onCloseForm , showPatientInfo , selectedWeekd
     setOpenSnackbar(false);
   };
 
-  let fetchPatientDietData = async () => {
-    await axios
-      .get(`${MAIN_URL}patientdietplans/show/${planId}`)
-      .then((response) => {
-        console.log("the response here is : ", response);
-        setPatietnData(response.data.Patient)
-        setDietPlan(response.data.DietPlan)
+  const rotateDaysBasedOnStartDate = (startDateStr) => {
+    try {
+      const [day, month, year] = startDateStr.split('-');
+      const startDate = new Date(`${year}-${month}-${day}`);
+      const startIndex = startDate.getDay(); // 0 (Sun) - 6 (Sat)
+console.log("startIndex is : " , startIndex);
 
-        // Sort diet plans based on the category order
-        const CategorisedCategories = response.data.CategorisedCategories.sort((a, b) => {
-          return a - b;
-        });
-
-        console.log("CategorisedCategories is : ", CategorisedCategories);
-        setOrderedCategories(CategorisedCategories)
-
-      })
-      .catch((error) => {
-        setSnackbarMessage("Error fetching Diet Plan data.");
-        setSnackbarSeverity("error");
-        setOpenSnackbar(true);
-      });
+      const rotatedDays = [
+        ...defaultOrderedDays.slice(startIndex),
+        ...defaultOrderedDays.slice(0, startIndex)
+      ];
+      console.log("rotatedDays is : " , rotatedDays);
+      
+      setOrderedDaysOfWeek(rotatedDays);
+    } catch (error) {
+      console.error("Error parsing week start date:", error);
+      setOrderedDaysOfWeek(defaultOrderedDays); // fallback
+    }
   };
 
-  console.log("DietPlan is : " , DietPlan);
-  
+  let fetchPatientDietData = async () => {
+    try {
+      const response = await axios.get(`${MAIN_URL}patientdietplans/show/${planId}`);
+      const { Patient, DietPlan, CategorisedCategories, weekDateStart } = response.data;
+
+      setPatietnData(Patient);
+      setDietPlan(DietPlan);
+      setOrderedCategories(CategorisedCategories.sort());
+
+      // Adjust days based on start of week
+      rotateDaysBasedOnStartDate(weekDateStart);
+
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setSnackbarMessage("Error fetching Diet Plan data.");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+    }
+  };
+
   useEffect(() => {
     if (planId) {
-      fetchPatientDietData()
+      fetchPatientDietData();
     }
-  }, [planId])
-
+  }, [planId]);
 
   const getRowColor = (index) => {
-    return index % 2 === 0 ? '#f5f5f5' : '#e0f7fa'; // Alternating colors
+    return index % 2 === 0 ? '#f5f5f5' : '#e0f7fa';
   };
+
   const downloadPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(18);
     doc.text('Patient Diet Plan', 14, 20);
 
-    // Patient Information
     doc.setFontSize(12);
     doc.text(`Name: ${patientData?.name}`, 14, 30);
     doc.text(`Age: ${patientData?.age}`, 14, 35);
-
     const today = new Date();
-    const dateString = today.toLocaleDateString();
-    doc.text(`Date of Download: ${dateString}`, 14, 40);
+    doc.text(`Date of Download: ${today.toLocaleDateString()}`, 14, 40);
     doc.text(`Week: ${selectedWeekdefault}`, 14, 45);
 
     const tableColumn = ['Day', 'Category', 'Items'];
     const tableRows = [];
 
-    orderedDaysOfWeek?.forEach((day) => {
+    orderedDaysOfWeek.forEach((day) => {
       let isFirstCategoryForDay = true;
-
-      orderedCategories?.forEach((category) => {
+      orderedCategories.forEach((category) => {
         const items = DietPlan?.[day]?.[category]?.join(', ') || '---';
-
-        // If this is the first category for the day, add the day to the first row and leave it blank for the rest
         if (isFirstCategoryForDay) {
           tableRows.push([day, category, items]);
-          isFirstCategoryForDay = false; // Set flag to false so the day won't repeat
+          isFirstCategoryForDay = false;
         } else {
-          tableRows.push(['', category, items]); // Empty day for subsequent categories
+          tableRows.push(['', category, items]);
         }
       });
     });
 
-    // Generate the table in the PDF
     doc.autoTable({
       head: [tableColumn],
       body: tableRows,
       startY: 50,
       didDrawCell: (data) => {
-        // Check if this is the first column (Day column)
-        if (data.column.index === 0 && data.row.index !== 0) {
-          // Remove borders from the empty cells for subsequent categories
-          if (data.row.raw[0] === '') {
-            doc.setDrawColor(255, 255, 255); // Set draw color to white to remove the border
-            doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, 'S');
-          }
+        if (data.column.index === 0 && data.row.index !== 0 && data.row.raw[0] === '') {
+          doc.setDrawColor(255, 255, 255);
+          doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, 'S');
         }
       },
     });
 
-    // Save the PDF
     doc.save('diet-plan.pdf');
   };
 
   const consoleNonEmptyData = () => {
-
     let filteredPlan = {};
-
     Object.entries(DietPlan).forEach(([day, meals]) => {
-        let nonEmptyMeals = Object.fromEntries(
-            Object.entries(meals).filter(([_, items]) => !items.includes("---"))
-        );
-
-        if (Object.keys(nonEmptyMeals).length > 0) {
-            filteredPlan[day] = nonEmptyMeals;
-        }
+      let nonEmptyMeals = Object.fromEntries(
+        Object.entries(meals).filter(([_, items]) => !items.includes("---"))
+      );
+      if (Object.keys(nonEmptyMeals).length > 0) {
+        filteredPlan[day] = nonEmptyMeals;
+      }
     });
-
-    setLocalStorageJSON("CopiedPlan" , filteredPlan);
-
+    setLocalStorageJSON("CopiedPlan", filteredPlan);
     setSnackbarMessage("Plan Copied Successfully");
     setSnackbarSeverity("success");
     setOpenSnackbar(true);
-
-  }
-
+  };
 
   return (
     <div style={{ padding: '20px' }}>
+      {showPatientInfo && (
+        <Paper style={{ padding: '16px', marginBottom: '20px' }}>
+          <Typography variant="h5" gutterBottom>Patient Information</Typography>
+          <Typography>Name: {patientData?.name}</Typography>
+          <Typography>Age: {patientData?.age}</Typography>
+          <Typography>Gender: {patientData?.gender}</Typography>
+          <Typography>Contact: {patientData?.contactNumber}</Typography>
+          <Typography>Email: {patientData?.email}</Typography>
+        </Paper>
+      )}
 
-      {
-        showPatientInfo == true &&
-      <Paper style={{ padding: '16px', marginBottom: '20px' }}>
-        <Typography variant="h5" gutterBottom>
-          Patient Information
-        </Typography>
-        <Typography>Name: {patientData?.name}</Typography>
-        <Typography>Age: {patientData?.age}</Typography>
-        <Typography>Gender: {patientData?.gender}</Typography>
-        <Typography>Contact: {patientData?.contactNumber}</Typography>
-        <Typography>Email: {patientData?.email}</Typography>
-      </Paper>
-      }
+      <Typography variant="h6" mt={2} mb={2}>For The Week: {selectedWeekdefault}</Typography>
 
-<Typography variant="h6" mt={2} mb={2}>
-            For The Week: {selectedWeekdefault}
-          </Typography>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+        <Button variant="contained" color="primary" onClick={downloadPDF} style={{ marginBottom: '20px' }}>
+          Download as PDF
+        </Button>
+        <Button variant="contained" color="secondary" onClick={consoleNonEmptyData} style={{ marginBottom: '20px' }}>
+          Copy This Diet Plan
+        </Button>
+      </div>
 
-<div style={{display:"flex" , alignItems:"center" , justifyContent:"space-between" , width:"100%"}}>
-      <Button variant="contained" color="primary" onClick={downloadPDF} style={{ marginBottom: '20px' }}>
-        Download as PDF
-      </Button>
+      <Typography variant="h6" gutterBottom>Diet Plan</Typography>
 
-      <Button variant="contained" color="secondary" onClick={consoleNonEmptyData} style={{ marginBottom: '20px' }}>
-        Copy This Diet Plan
-      </Button>
-
-</div>
-
-      <Typography variant="h6" gutterBottom>
-        Diet Plan
-      </Typography>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -216,9 +194,9 @@ function PatientDietView({ planId, onCloseForm , showPatientInfo , selectedWeekd
             </TableRow>
           </TableHead>
           <TableBody>
-            {orderedDaysOfWeek?.map((day, dayIndex) => (
-              categories?.map((category, index) => (
-                <TableRow key={`${day}-${category}`} style={{ backgroundColor: getRowColor(index), border: '1px solid #ccc' }}>
+            {orderedDaysOfWeek.map((day, dayIndex) =>
+              categories.map((category, index) => (
+                <TableRow key={`${day}-${category}`} style={{ backgroundColor: getRowColor(index) }}>
                   {index === 0 && (
                     <TableCell rowSpan={categories.length} style={{ border: '1px solid #ccc' }}>
                       {day}
@@ -230,7 +208,7 @@ function PatientDietView({ planId, onCloseForm , showPatientInfo , selectedWeekd
                   </TableCell>
                 </TableRow>
               ))
-            ))}
+            )}
           </TableBody>
         </Table>
       </TableContainer>
@@ -248,12 +226,8 @@ function PatientDietView({ planId, onCloseForm , showPatientInfo , selectedWeekd
             backgroundColor: snackbarSeverity === "success" ? "#4caf50" : "#f44336",
             color: "#fff",
             fontWeight: 600,
-            "& .MuiAlert-icon": {
-              color: "#fff",
-            },
-            "& .MuiAlert-action svg": {
-              color: "#fff",
-            },
+            "& .MuiAlert-icon": { color: "#fff" },
+            "& .MuiAlert-action svg": { color: "#fff" },
           }}
         >
           {snackbarMessage}
