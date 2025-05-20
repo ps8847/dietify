@@ -405,7 +405,7 @@ const PatientDietForm = ({ name, patientId, planId, selectedPlansWeeks, selected
               <Select
                 labelId="week-start-label"
                 value={weekStartDay}
-                onChange={(e) => setWeekStartDay(e.target.value)}
+                onChange={(e) => {setWeekStartDay(e.target.value); handleDaySelect(e.target.value)}}
                 label="Week Starts On"
               >
                 {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((day) => (
