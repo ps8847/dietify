@@ -99,6 +99,7 @@ const PatientDietForm = ({ name, patientId, planId, selectedPlansWeeks, selected
       let dataOfPreSave = getLocalStorageJSON(`patient_plan_${patientId}`);
 
       if (dataOfPreSave) {
+        setWeekStartDay(dataOfPreSave.weekStartDay)
         setSelectedDay(dataOfPreSave.dayOfWeek)
         setCurrentSelections(dataOfPreSave.currentSelections)
         setSelectedWeek(dataOfPreSave.selectedWeek)
@@ -119,7 +120,6 @@ const PatientDietForm = ({ name, patientId, planId, selectedPlansWeeks, selected
     Saturday: {},
   });
 
-
   let pastePlan = () => {
 
     let dd = getLocalStorageJSON("CopiedPlan");
@@ -132,7 +132,6 @@ const PatientDietForm = ({ name, patientId, planId, selectedPlansWeeks, selected
   };
 
   const weeklyRanges = generateWeeklyRanges(weekStartDay);
-
 
   const handleWeekChange = (event) => {
 
@@ -223,9 +222,9 @@ const PatientDietForm = ({ name, patientId, planId, selectedPlansWeeks, selected
 
         let date = response.data.DietPlan.weekDateStart;    // "15-08-2025"
 
-      // Convert to day name using dayjs
-      const [day, month, year] = date.split('-');
-      const formattedDay = dayjs(`${year}-${month}-${day}`).format('dddd'); // e.g., "Friday"
+        // Convert to day name using dayjs
+        const [day, month, year] = date.split('-');
+        const formattedDay = dayjs(`${year}-${month}-${day}`).format('dddd'); // e.g., "Friday"
 
         setWeekStartDay(formattedDay)
         setSelectedDay(formattedDay)
@@ -274,13 +273,13 @@ const PatientDietForm = ({ name, patientId, planId, selectedPlansWeeks, selected
       let dd = {
         dayOfWeek: "Sunday",
         currentSelections: newlyUpdated,
-        selectedWeek: ""
+        selectedWeek: "",
+        weekStartDay:""
       }
 
       setLocalStorageJSON(`patient_plan_${patientId}`, dd)
 
     }
-
 
     setCurrentSelections(newlyUpdated);
   };
@@ -363,7 +362,8 @@ const PatientDietForm = ({ name, patientId, planId, selectedPlansWeeks, selected
       let dd = {
         currentSelections: {},
         dayOfWeek: day,
-        selectedWeek: ""
+        selectedWeek: "",
+       weekStartDay : ""
       }
 
       setLocalStorageJSON(`patient_plan_${patientId}`, dd)
@@ -371,6 +371,35 @@ const PatientDietForm = ({ name, patientId, planId, selectedPlansWeeks, selected
     }
 
     setSelectedDay(day);
+  };
+
+
+  const setWeekStartdayValue = (day) => {
+
+    let dataOfPreSave = getLocalStorageJSON(`patient_plan_${patientId}`);
+
+    if (dataOfPreSave) {
+
+      let dd = {
+        ...dataOfPreSave,
+        weekStartDay: day
+      }
+
+      setLocalStorageJSON(`patient_plan_${patientId}`, dd)
+    } else {
+
+      let dd = {
+        currentSelections: {},
+        weekStartDay: day,
+        dayOfWeek : "",
+        selectedWeek: ""
+      }
+
+      setLocalStorageJSON(`patient_plan_${patientId}`, dd)
+
+    }
+
+    setWeekStartDay(day);
   };
 
   const [editingChip, setEditingChip] = useState(null);
@@ -400,12 +429,12 @@ const PatientDietForm = ({ name, patientId, planId, selectedPlansWeeks, selected
         {
           planId == null &&
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <FormControl variant="outlined" sx={{ width:300, marginBottom: 2 }}>
+            <FormControl variant="outlined" sx={{ width: 300, marginBottom: 2 }}>
               <InputLabel id="week-start-label">Week Starts On</InputLabel>
               <Select
                 labelId="week-start-label"
                 value={weekStartDay}
-                onChange={(e) => {setWeekStartDay(e.target.value); handleDaySelect(e.target.value)}}
+                onChange={(e) => { setWeekStartdayValue(e.target.value); handleWeekChange(e.target.value) }}
                 label="Week Starts On"
               >
                 {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((day) => (

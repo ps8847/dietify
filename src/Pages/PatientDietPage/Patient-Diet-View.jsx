@@ -76,7 +76,7 @@ console.log("startIndex is : " , startIndex);
 
       setPatietnData(Patient);
       setDietPlan(DietPlan);
-      setOrderedCategories(CategorisedCategories.sort());
+      setOrderedCategories(CategorisedCategories);
 
       // Adjust days based on start of week
       rotateDaysBasedOnStartDate(weekDateStart);
